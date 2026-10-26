@@ -1,0 +1,206 @@
+{
+  "adapter" : {
+    "source" : "AC",
+    "watts" : 96
+  },
+  "isDesktopMac" : false,
+  "ports" : [
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+        {
+          "header" : "What the cable's e-marker reports",
+          "lines" : [
+            "Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+            "Cable rated to 50V \/ 5 A, delivers up to 240W (USB-PD caps at 48V)",
+            "Passive (no signal-conditioning electronics)"
+          ],
+          "source" : "emarker"
+        },
+        {
+          "header" : "What your Mac measured",
+          "lines" : [
+            "Currently negotiated: 20V @ 5A (100W)"
+          ],
+          "source" : "measured"
+        },
+        {
+          "header" : "What WhatCable knows",
+          "lines" : [
+            "Made by Apple (0x05AC), per our bundled vendor list"
+          ],
+          "source" : "database"
+        },
+        {
+          "header" : "What the charger reports",
+          "lines" : [
+            "Charger advertises up to 100W"
+          ],
+          "source" : "charger"
+        }
+      ],
+      "bullets" : [
+        "Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+        "Cable rated to 50V \/ 5 A, delivers up to 240W (USB-PD caps at 48V)",
+        "Passive (no signal-conditioning electronics)",
+        "Currently negotiated: 20V @ 5A (100W)",
+        "Made by Apple (0x05AC), per our bundled vendor list",
+        "Charger advertises up to 100W"
+      ],
+      "cable" : {
+        "activeLayoutContradiction" : false,
+        "currentRating" : "5 A",
+        "endpoint" : "SOP'",
+        "maxVolts" : 50,
+        "maxWatts" : 240,
+        "plugType" : "Type-C",
+        "speed" : "USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+        "type" : "passive",
+        "typeSource" : "emarker",
+        "vendorID" : 1452,
+        "vendorName" : "Apple"
+      },
+      "charging" : {
+        "bottleneck" : "fine",
+        "detail" : "Charger and cable are well-matched. The Mac draws what it needs moment to moment, up to this limit.",
+        "isWarning" : false,
+        "summary" : "Charging well · up to 100W"
+      },
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : true,
+      "headline" : "Charging · 100W charger",
+      "name" : "Port-USB-C@1",
+      "pdCapable" : false,
+      "powerSources" : [
+        {
+          "maxPowerW" : 100,
+          "name" : "USB-PD",
+          "negotiated" : {
+            "currentA" : 5,
+            "powerW" : 100,
+            "voltageV" : 20
+          },
+          "options" : [
+            {
+              "currentA" : 5,
+              "powerW" : 100,
+              "voltageV" : 20
+            }
+          ]
+        }
+      ],
+      "status" : "charging",
+      "subtitle" : "Power is flowing. No data connection.",
+      "transports" : {
+        "active" : [
+
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+
+        ]
+      },
+      "trust" : {
+        "contradiction" : false,
+        "tier" : "amber"
+      },
+      "type" : "USB-C"
+    },
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+        {
+          "header" : "What the cable's e-marker reports",
+          "lines" : [
+            "Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+            "Cable rated to 50V \/ 5 A, delivers up to 240W (USB-PD caps at 48V)",
+            "Passive (no signal-conditioning electronics)"
+          ],
+          "source" : "emarker"
+        },
+        {
+          "header" : "What WhatCable knows",
+          "lines" : [
+            "Made by Apple (0x05AC), per our bundled vendor list"
+          ],
+          "source" : "database"
+        },
+        {
+          "header" : "What the charger reports",
+          "lines" : [
+            "Charger advertises up to 100W"
+          ],
+          "source" : "charger"
+        }
+      ],
+      "bullets" : [
+        "Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+        "Cable rated to 50V \/ 5 A, delivers up to 240W (USB-PD caps at 48V)",
+        "Passive (no signal-conditioning electronics)",
+        "Made by Apple (0x05AC), per our bundled vendor list",
+        "Charger advertises up to 100W"
+      ],
+      "cable" : {
+        "activeLayoutContradiction" : false,
+        "currentRating" : "5 A",
+        "endpoint" : "SOP'",
+        "maxVolts" : 50,
+        "maxWatts" : 240,
+        "plugType" : "Type-C",
+        "speed" : "USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+        "type" : "passive",
+        "typeSource" : "emarker",
+        "vendorID" : 1452,
+        "vendorName" : "Apple"
+      },
+      "charging" : {
+        "bottleneck" : "standbyCharger",
+        "detail" : "Another charger is powering the Mac right now. macOS draws from one charger at a time, so this charger stays on standby until the other is unplugged.",
+        "isWarning" : false,
+        "summary" : "Charger on standby"
+      },
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : true,
+      "headline" : "Charging · 100W charger",
+      "name" : "Port-USB-C@2",
+      "pdCapable" : false,
+      "powerSources" : [
+        {
+          "maxPowerW" : 100,
+          "name" : "USB-PD",
+          "options" : [
+            {
+              "currentA" : 5,
+              "powerW" : 100,
+              "voltageV" : 20
+            }
+          ]
+        }
+      ],
+      "status" : "charging",
+      "subtitle" : "Power is flowing. No data connection.",
+      "transports" : {
+        "active" : [
+
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+
+        ]
+      },
+      "trust" : {
+        "contradiction" : false,
+        "tier" : "amber"
+      },
+      "type" : "USB-C"
+    }
+  ],
+  "thunderboltSwitches" : [
+
+  ],
+  "version" : "<version>"
+}

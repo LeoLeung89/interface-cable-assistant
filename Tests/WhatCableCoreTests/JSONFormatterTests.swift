@@ -1,0 +1,1890 @@
+import Foundation
+import Testing
+import WhatCableCore
+
+/// Schema tests for the `whatcable --json` output. The JSON shape is a public
+/// contract for downstream consumers (Ubersicht / SwiftBar widgets, scripts,
+/// pipelines into jq), so a refactor that silently drops or renames a field
+/// would break callers without anyone noticing until a bug report.
+///
+/// We assert against parsed JSON rather than the underlying DTO types so the
+/// DTO types can stay private to the formatter.
+@Suite("JSON Formatter")
+struct JSONFormatterTests {
+
+    // MARK: - Fixtures
+
+    private func makePort(connected: Bool = true) -> USBCPort {
+        USBCPort(
+            id: 1,
+            serviceName: "Port-USB-C@1",
+            className: "AppleHPMInterfaceType10",
+            portDescription: "Port-USB-C@1",
+            portTypeDescription: "USB-C",
+            portNumber: 1,
+            connectionActive: connected,
+            activeCable: nil,
+            opticalCable: nil,
+            usbActive: nil,
+            superSpeedActive: true,
+            usbModeType: nil,
+            usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3"],
+            transportsActive: ["USB3"],
+            transportsProvisioned: [],
+            plugOrientation: nil,
+            plugEventCount: nil,
+            connectionCount: nil,
+            overcurrentCount: nil,
+            pinConfiguration: [:],
+            powerCurrentLimits: [],
+            firmwareVersion: nil,
+            bootFlagsHex: nil,
+            rawProperties: ["PortType": "2"]
+        )
+    }
+
+    private func usbPD(maxW: Int, winningW: Int) -> PowerSource {
+        let winning = PowerOption(
+            voltageMV: 20_000,
+            maxCurrentMA: winningW * 50,
+            maxPowerMW: winningW * 1000
+        )
+        let max = PowerOption(
+            voltageMV: 20_000,
+            maxCurrentMA: maxW * 50,
+            maxPowerMW: maxW * 1000
+        )
+        return PowerSource(
+            id: 1, name: "USB-PD", parentPortType: 2, parentPortNumber: 1,
+            options: [max], winning: winning
+        )
+    }
+
+    private func parse(_ s: String) -> [String: Any] {
+        guard let data = s.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            Issue.record("output was not a JSON object")
+            return [:]
+        }
+        return obj
+    }
+
+    // MARK: - Tunnelled devices (issue #274)
+
+    @Test("Tunnelled devices appear in top-level otherUSBDevices, absent otherwise")
+    func otherUSBDevicesBlock() throws {
+        let mouse = USBDevice(
+            id: 42, locationID: 0x2011_0000, vendorID: 0x05AC, productID: 0x0202,
+            vendorName: "Apple", productName: "USB Optical Mouse",
+            serialNumber: nil, usbVersion: nil, speedRaw: 1,
+            busPowerMA: nil, currentMA: nil, isThunderboltTunnelled: true,
+            rawProperties: [:]
+        )
+        // No Thunderbolt switches, so the device can't be attributed to a port:
+        // flat block with a null behindPort.
+        let withDev = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            usbDevices: [mouse]))
+        let other = withDev["otherUSBDevices"] as? [String: Any]
+        #expect(other != nil)
+        #expect(other?["behindPort"] == nil)
+        let devices = other?["devices"] as? [[String: Any]]
+        #expect(devices?.first?["name"] as? String == "USB Optical Mouse")
+
+        // Omitted entirely when there are no tunnelled devices.
+        let without = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false))
+        #expect(without["otherUSBDevices"] == nil)
+    }
+
+    @Test("Terminal field encoding does not alter structured JSON strings")
+    func terminalEncodingDoesNotAlterJSON() throws {
+        let hardwareName = "显示器 🚀\u{1B}]0;title\u{7}\nrow"
+        let device = USBDevice(
+            id: 42, locationID: 0x2011_0000, vendorID: 0x05AC, productID: 0x0202,
+            vendorName: "Apple", productName: hardwareName,
+            serialNumber: nil, usbVersion: nil, speedRaw: 1,
+            busPowerMA: nil, currentMA: nil, isThunderboltTunnelled: true,
+            rawProperties: [:]
+        )
+
+        let json = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            usbDevices: [device]
+        ))
+        let other = try #require(json["otherUSBDevices"] as? [String: Any])
+        let devices = try #require(other["devices"] as? [[String: Any]])
+
+        #expect(devices.first?["name"] as? String == hardwareName)
+    }
+
+    @Test("USB device DTO carries serial and USB version detail fields")
+    func usbDeviceDetailFields() throws {
+        let drive = USBDevice(
+            id: 7, locationID: 0x2011_0000, vendorID: 0x0BC2, productID: 0x2322,
+            vendorName: "Seagate", productName: "Expansion",
+            serialNumber: "NA8XYZ12", usbVersion: "3.10",
+            speedRaw: 4, busPowerMA: nil, currentMA: nil,
+            isThunderboltTunnelled: true,
+            rawProperties: [:]
+        )
+        let json = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            usbDevices: [drive]))
+        let dev = (json["otherUSBDevices"] as? [String: Any])?["devices"] as? [[String: Any]]
+        let first = try #require(dev?.first)
+        #expect(first["serialNumber"] as? String == "NA8XYZ12")
+        #expect(first["usbVersion"] as? String == "3.10")
+    }
+
+    @Test("USB device DTO vendorName falls back to the VID database")
+    func usbDeviceVendorFallback() throws {
+        // Device reports no USB Vendor Name; 0x05AC resolves to Apple in the DB.
+        let dev = USBDevice(
+            id: 8, locationID: 0x2011_0000, vendorID: 0x05AC, productID: 0x12A8,
+            vendorName: nil, productName: "Unnamed",
+            serialNumber: nil, usbVersion: nil, speedRaw: 4,
+            busPowerMA: nil, currentMA: nil, isThunderboltTunnelled: true,
+            rawProperties: [:]
+        )
+        let json = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            usbDevices: [dev]))
+        let devices = (json["otherUSBDevices"] as? [String: Any])?["devices"] as? [[String: Any]]
+        #expect(devices?.first?["vendorName"] as? String == "Apple")
+    }
+
+    @Test("USB device DTO vendorName stays null for unregistered VID 0 (no sentinel prose)")
+    func usbDeviceVendorNoSentinel() throws {
+        // VID 0 makes VendorDB.name(for:) return the human sentence
+        // "No vendor reported". That display prose must NOT leak into the
+        // machine-readable JSON field, which downstream consumers parse.
+        let dev = USBDevice(
+            id: 9, locationID: 0x2011_0000, vendorID: 0, productID: 0,
+            vendorName: nil, productName: "Mystery",
+            serialNumber: nil, usbVersion: nil, speedRaw: 2,
+            busPowerMA: nil, currentMA: nil, isThunderboltTunnelled: true,
+            rawProperties: [:]
+        )
+        let json = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            usbDevices: [dev]))
+        let devices = (json["otherUSBDevices"] as? [String: Any])?["devices"] as? [[String: Any]]
+        let first = try #require(devices?.first)
+        // Field is absent (encoded as nil → omitted), not the sentence.
+        #expect(first["vendorName"] == nil)
+    }
+
+    // MARK: - Built-in USB ports (issue #348)
+
+    @Test("builtInUSBDevices appears only on a desktop Mac with front-port devices")
+    func builtInUSBDevicesBlock() throws {
+        let drive = USBDevice(
+            id: 84, locationID: 0x0020_0000, vendorID: 0x04E8, productID: 0x61FD,
+            vendorName: "Samsung", productName: "PSSD T9",
+            serialNumber: nil, usbVersion: nil, speedRaw: 4,
+            busPowerMA: nil, currentMA: nil,
+            isBehindInternalHub: true,
+            rawProperties: [:]
+        )
+        // Desktop + front-port device: the block renders.
+        let onDesktop = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            isDesktopMac: true, usbDevices: [drive]))
+        let block = onDesktop["builtInUSBDevices"] as? [String: Any]
+        #expect(block != nil)
+        let devices = block?["devices"] as? [[String: Any]]
+        #expect(devices?.first?["name"] as? String == "PSSD T9")
+
+        // Same device on a laptop: the desktop-only gate suppresses the block
+        // even though the structural flag is set (issue #348 safety net).
+        let onLaptop = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            isDesktopMac: false, usbDevices: [drive]))
+        #expect(onLaptop["builtInUSBDevices"] == nil)
+
+        // Desktop with no front-port devices: omitted entirely.
+        let emptyDesktop = parse(try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            isDesktopMac: true))
+        #expect(emptyDesktop["builtInUSBDevices"] == nil)
+    }
+
+    // MARK: - Top-level shape
+
+    @Test("Top level has version and ports")
+    func topLevelHasVersionAndPorts() throws {
+        let json = try JSONFormatter.render(ports: [], sources: [], identities: [], showRaw: false)
+        let obj = parse(json)
+        #expect(obj["version"] as? String != nil)
+        #expect(obj["ports"] as? [[String: Any]] != nil)
+    }
+
+    @Test("Empty ports list is an array")
+    func emptyPortsListIsAnArray() throws {
+        let json = try JSONFormatter.render(ports: [], sources: [], identities: [], showRaw: false)
+        let obj = parse(json)
+        #expect((obj["ports"] as? [Any])?.count == 0)
+    }
+
+    // MARK: - Port shape
+
+    @Test("Port DTO fields")
+    func portDTOFields() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let ports = obj["ports"] as? [[String: Any]] ?? []
+        let first = try #require(ports.first)
+
+        // These are the always-present keys. cable / device / charging /
+        // rawProperties are optional and only appear when relevant data is
+        // available; their presence is exercised in dedicated tests below.
+        let expected: Set<String> = [
+            "name", "type", "className", "connectionActive", "pdCapable", "status",
+            "headline", "subtitle", "bullets", "transports", "powerSources"
+        ]
+        let actual = Set(first.keys)
+        #expect(
+            expected.isSubset(of: actual),
+            "missing keys: \(expected.subtracting(actual))"
+        )
+
+        #expect(first["name"] as? String == "Port-USB-C@1")
+        #expect(first["type"] as? String == "USB-C")
+        #expect(first["className"] as? String == "AppleHPMInterfaceType10")
+        #expect(first["connectionActive"] as? Bool == true)
+    }
+
+    @Test("Transports DTO fields")
+    func transportsDTOFields() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let transports = try #require(port["transports"] as? [String: Any])
+        #expect(transports["supported"] as? [String] == ["CC", "USB2", "USB3"])
+        #expect(transports["active"] as? [String] == ["USB3"])
+        #expect(transports["provisioned"] as? [String] != nil)
+    }
+
+    @Test("USB3 speed appears in transports DTO")
+    func usb3SpeedAppearsInTransportsDTO() throws {
+        let port = makePort()
+        // issue #181: corroborate via TRM restriction, isolating the JSON
+        // field-formatting behaviour this test pins.
+        let transport = USB3Transport(
+            id: 200, portKey: "2/1", signaling: 2,
+            signalingDescription: "Gen 2", dataRole: "host",
+            transportRestricted: true
+        )
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: false,
+            usb3Transports: [transport]
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let transports = try #require(portObj["transports"] as? [String: Any])
+        #expect(transports["usb3Speed"] as? String == "USB 3.2 Gen 2 (10 Gbps)")
+    }
+
+    @Test("USB3 speed nil for USB2-only link with stale signals (issue #187)")
+    func usb3SpeedNilForUSB2OnlyLinkWithStaleSignals() throws {
+        // The HPM controller can leave `IOAccessoryUSBSuperSpeedActive=1`,
+        // keep a Gen 2 `IOPortTransportStateUSB3` service registered, and
+        // even keep a matched `USBDevice` reporting SuperSpeed when the
+        // negotiated link is only USB 2.0. `TransportsActive` is the sole
+        // authority: when USB3 isn't in it, `usb3Speed` must be nil.
+        let port = USBCPort(
+            id: 1, serviceName: "Port-USB-C@1",
+            className: "AppleHPMInterfaceType10",
+            portDescription: "Port-USB-C@1", portTypeDescription: "USB-C",
+            portNumber: 1, connectionActive: true,
+            activeCable: nil, opticalCable: nil,
+            usbActive: nil, superSpeedActive: true,
+            usbModeType: nil, usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3", "CIO", "DisplayPort"],
+            transportsActive: ["CC", "USB2"],
+            transportsProvisioned: ["CC", "USB3", "USB2"],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:],
+            powerCurrentLimits: [],
+            firmwareVersion: nil, bootFlagsHex: nil,
+            rawProperties: ["PortType": "2"]
+        )
+        let transport = USB3Transport(
+            id: 187, portKey: "2/1", signaling: 2,
+            signalingDescription: "Gen 2", dataRole: "host"
+        )
+        let staleDevice = USBDevice(
+            id: 300, locationID: 0x0100_0000,
+            vendorID: 0x04E8, productID: 0x4001,
+            vendorName: nil, productName: "Stale SuperSpeed",
+            serialNumber: nil, usbVersion: "3.2",
+            speedRaw: 4, busPowerMA: 900, currentMA: 896,
+            controllerPortName: "Port-USB-C@1",
+            rawProperties: [:]
+        )
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: false,
+            usb3Transports: [transport],
+            usbDevices: [staleDevice]
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let transports = try #require(portObj["transports"] as? [String: Any])
+        #expect(transports["usb3Speed"] as? String == nil,
+            "USB2-only link must not emit usb3Speed, got: \(String(describing: transports["usb3Speed"]))")
+        #expect(transports["active"] as? [String] == ["CC", "USB2"])
+    }
+
+    @Test("USB3 speed nil without transport data")
+    func usb3SpeedNilWithoutTransportData() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let transports = try #require(portObj["transports"] as? [String: Any])
+        // usb3Speed should be absent (null) when no transport data is provided.
+        #expect(transports["usb3Speed"] as? String == nil)
+    }
+
+    // MARK: - Power sources
+
+    @Test("Power source DTO includes negotiated and options")
+    func powerSourceDTOIncludesNegotiatedAndOptions() throws {
+        let port = makePort()
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [usbPD(maxW: 96, winningW: 60)],
+            identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let powerSources = try #require(portObj["powerSources"] as? [[String: Any]])
+        let pd = try #require(powerSources.first)
+
+        #expect(pd["name"] as? String == "USB-PD")
+        #expect(pd["maxPowerW"] as? Int == 96)
+
+        let negotiated = try #require(pd["negotiated"] as? [String: Any])
+        #expect(negotiated["voltageV"] as? Double == 20.0)
+        #expect(negotiated["powerW"] as? Double == 60.0)
+
+        let options = try #require(pd["options"] as? [[String: Any]])
+        #expect(options.count == 1)
+    }
+
+    // MARK: - Charging
+
+    @Test("Charging DTO fields")
+    func chargingDTOFields() throws {
+        let port = makePort()
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [usbPD(maxW: 96, winningW: 60)],
+            identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let charging = try #require(portObj["charging"] as? [String: Any])
+        #expect(charging["summary"] as? String != nil)
+        #expect(charging["detail"] as? String != nil)
+        #expect(charging["bottleneck"] as? String != nil)
+        #expect(charging["isWarning"] as? Bool != nil)
+        // Bottleneck is a stable enum string, not the Swift case description.
+        let bottleneck = charging["bottleneck"] as? String ?? ""
+        #expect(
+            ["noCharger", "chargerLimit", "cableLimit", "macLimit", "fine"].contains(bottleneck),
+            "unexpected bottleneck value: \(bottleneck)"
+        )
+    }
+
+    // MARK: - Trust flags
+
+    private func cableIdentity(vendorID: Int, cableVDO: UInt32) -> USBPDSOP {
+        USBPDSOP(
+            id: 1,
+            endpoint: .sopPrime,
+            parentPortType: 2,
+            parentPortNumber: 1,
+            vendorID: vendorID,
+            productID: 0x1234,
+            bcdDevice: 0,
+            vdos: [
+                (3 << 27) | UInt32(vendorID),
+                0,
+                0,
+                cableVDO
+            ],
+            specRevision: 3
+        )
+    }
+
+    /// Valid cable-latency bits (0001 = ~10 ns / ~1 m).
+    private static let validLatency: UInt32 = 1 << 13
+
+    @Test("Trust flags omitted for clean cable")
+    func trustFlagsOmittedForCleanCable() throws {
+        let port = makePort()
+        // VID 0x05AC (Apple), USB4 Gen3, 5A, valid latency: no flags expected.
+        let id = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        #expect(cable["trustFlags"] == nil)
+    }
+
+    @Test("Trust flags populated for zero VID and reserved bits")
+    func trustFlagsPopulatedForZeroVidAndReservedBits() throws {
+        let port = makePort()
+        // VID=0, speed=6 (reserved), current=3 (reserved), valid latency: three flags.
+        let vdo = UInt32(0b110) | UInt32(3 << 5) | Self.validLatency
+        let id = cableIdentity(vendorID: 0, cableVDO: vdo)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        let flags = try #require(cable["trustFlags"] as? [[String: Any]])
+        #expect(flags.count == 3)
+
+        let codes = flags.compactMap { $0["code"] as? String }
+        #expect(codes == ["zeroVendorID", "reservedSpeedEncoding", "reservedCurrentEncoding"])
+
+        // Each flag carries title + detail.
+        for flag in flags {
+            #expect(flag["title"] as? String != nil)
+            #expect(flag["detail"] as? String != nil)
+        }
+    }
+
+    @Test("Trust flags emits H3 for unregistered VID")
+    func trustFlagsEmitsH3ForUnregisteredVID() throws {
+        let port = makePort()
+        // 0xDEAD isn't in the curated map or the bundled USB-IF list.
+        let id = cableIdentity(vendorID: 0xDEAD, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        let flags = try #require(cable["trustFlags"] as? [[String: Any]])
+        #expect(flags.count == 1)
+        #expect(flags.first?["code"] as? String == "vidNotInUSBIFList")
+        // Detail should reference the VID in hex so users can grep / search.
+        let detail = flags.first?["detail"] as? String ?? ""
+        #expect(detail.contains("0xDEAD"), "detail should include hex VID, got: \(detail)")
+    }
+
+    // MARK: - Trust tier: power axis (end-to-end contract -> JSONFormatter -> CableTrust)
+
+    /// End-to-end proof that a winning PD contract, rendered through
+    /// JSONFormatter, reaches CableTrust and produces a green tier confirmed
+    /// by power. CableTrustTests and CableTrustCorpusTests feed
+    /// `negotiatedWatts` straight into `CableTrust`; this is the only test
+    /// that goes through JSONFormatter's own computation of it (the "Cable
+    /// trust tier" block above `self.trust`).
+    ///
+    /// The cable e-marker rates 100 W here: current encoding 0b10 = 5 A,
+    /// non-EPR ceiling 20 V, 20 V x 5 A = 100 W (see the `maxWatts`
+    /// computation in USBPDVDO.swift). A 96 W-rated cable is unreachable --
+    /// `CableCurrent` only encodes 3 A or 5 A, so a passive 20 V cable rates
+    /// 60 W or 100 W -- so the power axis is driven by the source's winning
+    /// wattage relative to this 100 W rating instead.
+    ///
+    /// `makePort()` has no usb3Transports/thunderboltSwitches passed to
+    /// `render`, so `DataLinkDiagnostic` returns nil (no active speed to
+    /// resolve) and the data axis never confirms here: confirmedBy is power
+    /// alone, not both axes.
+    @Test("Winning PD contract at rated power reaches CableTrust as green, confirmedBy power")
+    func winningPDContractAtRatedPowerConfirmsPowerGreen() throws {
+        let port = makePort()
+        // 100 W-rated passive cable (same VDO shape as the "clean cable" trust test).
+        let id = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [usbPD(maxW: 100, winningW: 100)],
+            identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let trust = try #require(portObj["trust"] as? [String: Any])
+        #expect(trust["tier"] as? String == "green")
+        #expect(trust["confirmedBy"] as? [String] == ["power"])
+    }
+
+    @Test("PD contract below rated power reaches CableTrust as amber, no confirmedBy")
+    func pdContractBelowRatedPowerStaysAmber() throws {
+        let port = makePort()
+        let id = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [usbPD(maxW: 100, winningW: 60)],
+            identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let trust = try #require(portObj["trust"] as? [String: Any])
+        #expect(trust["tier"] as? String == "amber")
+        #expect(trust["confirmedBy"] == nil)
+    }
+
+    /// Pins the `.max()` in `JSONFormatter`'s `negotiatedWatts` selection: a
+    /// port can present more than one PD source, and the winning wattage
+    /// CableTrust sees has to be the highest of them, not whichever comes
+    /// first. The lower-winning source is placed first in the array on
+    /// purpose, so a selection that just returned `sources.first` would also
+    /// pass; only `.max()` across both sources produces green here. Mutating
+    /// `.max()` to `.min()` turns this red (amber instead of green): the
+    /// two prior tests each pass a single source, so neither exercises this.
+    @Test("Two PD sources on one port: CableTrust uses the highest winning contract, not the first")
+    func multipleSourcesUseHighestWinningContract() throws {
+        let port = makePort()
+        let id = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port],
+            sources: [usbPD(maxW: 60, winningW: 60), usbPD(maxW: 100, winningW: 100)],
+            identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let trust = try #require(portObj["trust"] as? [String: Any])
+        #expect(trust["tier"] as? String == "green")
+        #expect(trust["confirmedBy"] as? [String] == ["power"])
+    }
+
+    // MARK: - Issue #573 part 2: MagSafe cable identity JSON shape
+
+    private func magSafePort() -> USBCPort {
+        USBCPort(
+            id: 1,
+            serviceName: "Port-MagSafe 3@1",
+            className: "AppleHPMInterfaceType11",
+            portDescription: "Port-MagSafe 3@1",
+            portTypeDescription: "MagSafe 3",
+            portNumber: 1,
+            connectionActive: true,
+            activeCable: nil, opticalCable: nil, usbActive: nil, superSpeedActive: nil,
+            usbModeType: nil, usbConnectString: nil,
+            transportsSupported: [], transportsActive: ["CC"], transportsProvisioned: ["CC"],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:], powerCurrentLimits: [],
+            firmwareVersion: nil, bootFlagsHex: nil, rawProperties: ["PortType": "17"]
+        )
+    }
+
+    /// Pins the JSON delta the design review named explicitly: once
+    /// `USBPDSOPWatcher` produces a MagSafe cable identity, `--json` gains a
+    /// `cable` object for that port (VID exposed, PID deliberately NOT --
+    /// out of scope per the spec unless the owner asks) with no
+    /// `trustFlags` (empty `vdos` -> `CableTrustReport` has nothing to flag),
+    /// AND a `trust` object at the tier `CableTrust` computes for
+    /// "nothing demonstrated yet, nothing to flag either" (amber, the
+    /// Phase 1 default: MagSafe's zero-VDO identity has no live-delivery
+    /// evidence and no static flags). This is the "broader than one cable
+    /// object" delta the review called out; pinned here, not assumed.
+    @Test("MagSafe cable identity: cable object with VID but no PID, no trust flags, amber trust tier")
+    func magSafeCableIdentityJSONShape() throws {
+        let magSafeCable = USBPDSOP(
+            id: 99, endpoint: .sopPrime,
+            parentPortType: 17, parentPortNumber: 1,
+            vendorID: 0x05AC, productID: 0x7800, bcdDevice: 0,
+            vdos: [], specRevision: 0
+        )
+        let json = try JSONFormatter.render(
+            ports: [magSafePort()], sources: [], identities: [magSafeCable], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        #expect(cable["vendorID"] as? Int == 0x05AC)
+        // CableDTO exposes VID but never PID (spec: "adding productID to
+        // JSON is NOT in scope unless the owner asks"). No key of any name
+        // carrying 0x7800 (30720) should be present.
+        #expect(cable["productID"] == nil)
+        #expect(cable["trustFlags"] == nil)
+
+        let trust = try #require(portObj["trust"] as? [String: Any])
+        #expect(trust["tier"] as? String == "amber")
+        #expect(trust["confirmedBy"] == nil)
+        #expect(trust["contradiction"] as? Bool == false)
+    }
+
+    // MARK: - Active Cable VDO 2 surfacing
+
+    private func activeCableIdentity(vdo4: UInt32, vendorID: Int = 0x05AC) -> USBPDSOP {
+        // Active cable: ufpProductType bits 29..27 = 100 = 4.
+        // Cable VDO with valid active termination + USB4 Gen3 + 5A + valid latency.
+        let cableVDO: UInt32 = UInt32(0b011) | UInt32(2 << 5) | Self.validLatency | UInt32(0b10 << 11)
+        return USBPDSOP(
+            id: 1,
+            endpoint: .sopPrime,
+            parentPortType: 2,
+            parentPortNumber: 1,
+            vendorID: vendorID,
+            productID: 0x1234,
+            bcdDevice: 0,
+            vdos: [
+                (4 << 27) | UInt32(vendorID),
+                0,
+                0,
+                cableVDO,
+                vdo4
+            ],
+            specRevision: 3
+        )
+    }
+
+    @Test("Active block omitted for passive cable")
+    func activeBlockOmittedForPassiveCable() throws {
+        let port = makePort()
+        let passive = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [passive], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        #expect(cable["active"] == nil, "Passive cables should not surface an active VDO2 block")
+    }
+
+    @Test("Active block present for active cable")
+    func activeBlockPresentForActiveCable() throws {
+        let port = makePort()
+        // VDO2: optical (bit 10) + retimer (bit 9) + isolated (bit 2).
+        // USB4 / USB 3.2 / USB 2.0 supported = leave bits 8, 5, 4 at 0
+        // (the spec-defined "supported" value is 0, not 1).
+        var vdo4: UInt32 = 0
+        vdo4 |= UInt32(1) << 10
+        vdo4 |= UInt32(1) << 9
+        vdo4 |= UInt32(1) << 2
+        let id = activeCableIdentity(vdo4: vdo4)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [id], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        let active = try #require(cable["active"] as? [String: Any])
+        #expect(active["physicalConnection"] as? String == "Optical")
+        #expect(active["activeElement"] as? String == "Re-timer")
+        #expect(active["opticallyIsolated"] as? Bool == true)
+        #expect(active["usb4Supported"] as? Bool == true)
+    }
+
+    // MARK: - Raw properties gating
+
+    // MARK: - Active-layout contradiction field
+
+    /// Contradiction fixture: passive ID Header (Product Type 3) but VDO[3] bit 3 set.
+    /// Matches the CalDigit 2M TB4 cable from corpus.
+    private func contradictionCableIdentity() -> USBPDSOP {
+        let caldigitVDO3: UInt32 = 0x3208485A
+        return USBPDSOP(
+            id: 1, endpoint: .sopPrime,
+            parentPortType: 2, parentPortNumber: 1,
+            vendorID: 0x2B1D, productID: 0x1901, bcdDevice: 0x97,
+            vdos: [
+                (3 << 27) | UInt32(0x2B1D),
+                0,
+                0x19010097,
+                caldigitVDO3
+            ],
+            specRevision: 3
+        )
+    }
+
+    @Test("activeLayoutContradiction is true for contradiction cable")
+    func activeLayoutContradictionTrueForContradictionCable() throws {
+        let port = makePort()
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [contradictionCableIdentity()], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        #expect(cable["activeLayoutContradiction"] as? Bool == true)
+    }
+
+    @Test("activeLayoutContradiction is false for normal passive cable")
+    func activeLayoutContradictionFalseForNormalPassive() throws {
+        let port = makePort()
+        // Clean passive cable: bit 3 clear in VDO[3].
+        let passive = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [passive], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let cable = try #require(portObj["cable"] as? [String: Any])
+        #expect(cable["activeLayoutContradiction"] as? Bool == false)
+    }
+
+    @Test("Raw properties omitted by default")
+    func rawPropertiesOmittedByDefault() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        // showRaw=false should leave rawProperties absent / null.
+        #expect(json.contains("\"rawProperties\" : {") == false,
+                "rawProperties should not appear as a populated object")
+    }
+
+    @Test("Raw properties included when requested")
+    func rawPropertiesIncludedWhenRequested() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: true
+        )
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let raw = try #require(port["rawProperties"] as? [String: String])
+        #expect(raw["PortType"] == "2")
+    }
+
+    // MARK: - pdCapable
+
+    @Test("PD capable true when CC present")
+    func pdCapableTrueWhenCCPresent() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        #expect(port["pdCapable"] as? Bool == true)
+    }
+
+    @Test("PD capable false when CC absent")
+    func pdCapableFalseWhenCCAbsent() throws {
+        // Mimic an M4 Mac Mini front USB-C port: USB-only, no Configuration
+        // Channel, so no PD and no SOP' query possible.
+        let port = USBCPort(
+            id: 5, serviceName: "Port-USB-C@5", className: "IOPort",
+            portDescription: "Port-USB-C@5", portTypeDescription: "USB-C",
+            portNumber: 5, connectionActive: true, activeCable: nil,
+            opticalCable: nil, usbActive: true, superSpeedActive: true,
+            usbModeType: nil, usbConnectString: nil,
+            transportsSupported: ["USB2", "USB3"],
+            transportsActive: ["USB3"],
+            transportsProvisioned: ["USB2", "USB3"],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:],
+            powerCurrentLimits: [], firmwareVersion: nil, bootFlagsHex: nil,
+            rawProperties: [:]
+        )
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let portJSON = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        #expect(portJSON["pdCapable"] as? Bool == false)
+        // And the port should not claim a missing e-marker. The read state is
+        // now the e-marker group's subtitle, which the JSON does not carry
+        // yet, so assert it on the summary itself.
+        let bullets = portJSON["bullets"] as? [String] ?? []
+        #expect(bullets.contains(where: { $0.contains("No e-marker") }) == false,
+                "no-PD port should not claim a missing e-marker, got: \(bullets)")
+        let summary = PortSummary(port: port)
+        #expect(summary.group(.emarker)?.subtitle?.contains("can't read cable details") == true,
+                "expected the 'port can't read cable details' subtitle, got: \(summary.groups)")
+    }
+
+    // MARK: - JSON validity
+
+    @Test("Renders valid JSON for disconnected port")
+    func rendersValidJSONForDisconnectedPort() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort(connected: false)], sources: [], identities: [], showRaw: false
+        )
+        // Must parse successfully and have a port with connectionActive=false.
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        #expect(port["connectionActive"] as? Bool == false)
+        #expect(port["status"] as? String == "empty")
+        #expect(port["headline"] as? String == "Nothing connected")
+    }
+
+    // MARK: - Thunderbolt fabric
+
+    /// The `thunderboltSwitches` key must always be present at the top
+    /// level, even when the host has no Thunderbolt controller. The
+    /// docstring on `CableSnapshot.thunderboltSwitches` advertises this
+    /// to downstream consumers.
+    @Test("IOThunderboltSwitches key present even when empty")
+    func ioThunderboltSwitchesKeyPresentEvenWhenEmpty() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort(connected: false)], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        #expect(obj["thunderboltSwitches"] != nil, "top-level key must always exist")
+        #expect((obj["thunderboltSwitches"] as? [Any])?.count == 0)
+    }
+
+    /// The depth-1 switch an attached device produces. Its route string's
+    /// low byte is the host root's own downstream port number, which is what
+    /// makes that host lane read as linked rather than merely trained.
+    private func attachedPartner(parent: Int64, onPortNumber: Int = 1) -> IOThunderboltSwitch {
+        IOThunderboltSwitch(
+            id: -7,
+            className: "IOThunderboltSwitchIntelJHL8440",
+            vendorID: 0x8086, vendorName: "Intel", modelName: "JHL8440",
+            routerID: 1, depth: 1, routeString: Int64(onPortNumber),
+            upstreamPortNumber: 1, maxPortNumber: 4,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [],
+            parentSwitchUID: parent
+        )
+    }
+
+    @Test("IOThunderboltSwitches encoded at top level")
+    func ioThunderboltSwitchesEncodedAtTopLevel() throws {
+        let host = IOThunderboltSwitch(
+            id: 408750268121704800,
+            className: "IOIOThunderboltSwitchType5",
+            vendorID: 1452,
+            vendorName: "Apple Inc.",
+            modelName: "iOS",
+            routerID: 0,
+            depth: 0,
+            routeString: 0,
+            upstreamPortNumber: 7,
+            maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [
+                IOThunderboltPort(
+                    portNumber: 1,
+                    socketID: "1",
+                    adapterType: .lane,
+                    currentSpeed: .usb4Tb4,
+                    currentWidth: LinkWidth(rawValue: 0x2),
+                    targetWidth: .dual,
+                    rawTargetSpeed: 12,
+                    linkBandwidthRaw: 400
+                )
+            ],
+            parentSwitchUID: nil
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host, attachedPartner(parent: host.id)]
+        )
+        let obj = parse(json)
+        let switches = obj["thunderboltSwitches"] as? [[String: Any]] ?? []
+        #expect(switches.count == 2)
+
+        let sw = switches[0]
+        // The hardware UID is a stable machine identifier and must never
+        // appear in JSON output; switches are referenced by array index.
+        #expect(sw["uid"] == nil)
+        #expect(sw["index"] as? Int == 0)
+        #expect(sw["depth"] as? Int == 0)
+        #expect(sw["modelName"] as? String == "iOS")
+
+        let ports = sw["ports"] as? [[String: Any]] ?? []
+        let port = ports.first ?? [:]
+        #expect(port["adapterType"] as? String == "lane")
+        #expect(port["linkActive"] as? Bool == true)
+        #expect(port["linkLabel"] as? String == "Up to 20 Gb/s × 2")
+        #expect(port["generation"] as? String == "usb4Tb4")
+        #expect(port["perLaneGbps"] as? Int == 20)
+        #expect(port["txLanes"] as? Int == 2)
+        #expect(port["txGbps"] as? Double == 40)
+        #expect(port["rxGbps"] as? Double == 40)
+    }
+
+    @Test("Asymmetric TB5 port encodes separate txGbps and rxGbps")
+    func asymmetricTb5PortEncodesSeparateRates() throws {
+        let host = IOThunderboltSwitch(
+            id: 408750268121704800,
+            className: "IOIOThunderboltSwitchType5",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [
+                IOThunderboltPort(
+                    portNumber: 1, socketID: "1", adapterType: .lane,
+                    currentSpeed: .tb5,
+                    currentWidth: LinkWidth(rawValue: 0x4),
+                    targetWidth: .dual,
+                    rawTargetSpeed: 12,
+                    linkBandwidthRaw: 400
+                )
+            ],
+            parentSwitchUID: nil
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host, attachedPartner(parent: host.id)]
+        )
+        let obj = parse(json)
+        let switches = obj["thunderboltSwitches"] as? [[String: Any]] ?? []
+        let port = (switches[0]["ports"] as? [[String: Any]] ?? []).first ?? [:]
+        #expect(port["linkLabel"] as? String == "Up to 120 Gb/s out, 40 Gb/s in")
+        #expect(port["txGbps"] as? Double == 120)
+        #expect(port["rxGbps"] as? Double == 40)
+    }
+
+    /// An idle host root still reports trained lanes, so the raw read would
+    /// publish a live link on an empty port. JSON must say linkActive false
+    /// and carry no label at all.
+    @Test("Idle host root port encodes linkActive false and no linkLabel")
+    func idleHostRootPortEncodesNoLink() throws {
+        let host = IOThunderboltSwitch(
+            id: 408750268121704800,
+            className: "IOThunderboltSwitchType5",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [
+                // Speed code 0x8, width 1: what an empty socket reads on
+                // Type3 to Type5 silicon, corpus-wide.
+                IOThunderboltPort(
+                    portNumber: 1, socketID: "1", adapterType: .lane,
+                    currentSpeed: .tb3,
+                    currentWidth: LinkWidth(rawValue: 0x1),
+                    targetWidth: .dual,
+                    rawTargetSpeed: 12, linkBandwidthRaw: 100
+                )
+            ],
+            parentSwitchUID: nil
+        )
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host]
+        )
+        let obj = parse(json)
+        let port = ((obj["thunderboltSwitches"] as? [[String: Any]])?.first?["ports"] as? [[String: Any]])?.first ?? [:]
+        #expect(port["linkActive"] as? Bool == false)
+        #expect(port["linkLabel"] == nil)
+    }
+
+    /// A daisy-chained dock's switch must reference its parent by array
+    /// index, and no raw hardware UID may appear anywhere in the switch
+    /// objects (the UID is a stable machine identifier; privacy rule).
+    @Test("Daisy-chained switch references parent by index, no UID encoded")
+    func daisyChainedSwitchReferencesParentByIndex() throws {
+        let host = IOThunderboltSwitch(
+            id: 408750268121704800,
+            className: "IOIOThunderboltSwitchType5",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [],
+            parentSwitchUID: nil
+        )
+        let dock = IOThunderboltSwitch(
+            id: -5188146770730811392,
+            className: "IOThunderboltSwitchIntel",
+            vendorID: 0x8086, vendorName: "Intel", modelName: "JHL8440",
+            routerID: 1, depth: 1, routeString: 1,
+            upstreamPortNumber: 1, maxPortNumber: 4,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [],
+            parentSwitchUID: host.id
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host, dock]
+        )
+        let obj = parse(json)
+        let switches = obj["thunderboltSwitches"] as? [[String: Any]] ?? []
+        #expect(switches.count == 2)
+        let hostDTO = switches[0]
+        let dockDTO = switches[1]
+        #expect(hostDTO["index"] as? Int == 0)
+        #expect(dockDTO["index"] as? Int == 1)
+        #expect(dockDTO["parentSwitchIndex"] as? Int == 0)
+        for sw in switches {
+            #expect(sw["uid"] == nil)
+            #expect(sw["parentSwitchUID"] == nil)
+        }
+        // Belt and braces: neither raw UID may appear anywhere in the
+        // rendered output, in any field, under any name.
+        #expect(!json.contains("408750268121704800"))
+        #expect(!json.contains("5188146770730811392"))
+    }
+
+    /// TB5 was confirmed against a real M5 Pro + UGreen JHL9580 dock
+    /// sample on issue #52, so JSON consumers now get `generation == "tb5"`
+    /// alongside the per-lane label and the raw speed code.
+    @Test("TB5 JSON generation label is confirmed")
+    func tb5JsonGenerationLabelIsConfirmed() throws {
+        let host = IOThunderboltSwitch(
+            id: 1, className: "IOIOThunderboltSwitchType9",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 14),
+            ports: [
+                IOThunderboltPort(
+                    portNumber: 1, socketID: "1", adapterType: .lane,
+                    currentSpeed: .tb5,
+                    currentWidth: LinkWidth(rawValue: 0x2),
+                    targetWidth: .dual,
+                    rawTargetSpeed: nil, linkBandwidthRaw: 800
+                )
+            ],
+            parentSwitchUID: nil
+        )
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host, attachedPartner(parent: host.id)]
+        )
+        let obj = parse(json)
+        let port = ((obj["thunderboltSwitches"] as? [[String: Any]])?.first?["ports"] as? [[String: Any]])?.first ?? [:]
+        let gen = port["generation"] as? String ?? ""
+        #expect(gen == "tb5", "TB5 should be reported as confirmed")
+        #expect(port["linkLabel"] as? String == "Up to 40 Gb/s × 2")
+        #expect(port["perLaneGbps"] as? Int == 40)
+        // Raw speed code is still exposed for diagnostics consumers.
+        #expect(port["rawSpeedCode"] as? Int == 0x2)
+    }
+
+    // MARK: - TRM transport state
+
+    @Test("TRM appears on port with restricted transport")
+    func trmAppearsOnPortWithRestrictedTransport() throws {
+        let port = makePort()
+        let trm = TRMTransport(
+            id: 300,
+            portKey: "2/1",
+            transportType: "USB2",
+            state: 2,
+            stateDescription: "Limited",
+            transportRestricted: true,
+            transportSupervised: true,
+            identificationRestricted: false,
+            deviceLocked: false,
+            relaxedPeriod: true,
+            gracePeriodReason: 4,
+            gracePeriodReasonDescription: "Device Unlocked",
+            profile: 2,
+            profileDescription: "Ask for New Accessories",
+            cacheMiss: false
+        )
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: false,
+            trmTransports: [trm]
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let trmArr = try #require(portObj["trm"] as? [[String: Any]])
+        #expect(trmArr.count == 1)
+
+        let entry = trmArr[0]
+        #expect(entry["transportType"] as? String == "USB2")
+        #expect(entry["state"] as? Int == 2)
+        #expect(entry["stateDescription"] as? String == "Limited")
+        #expect(entry["transportRestricted"] as? Bool == true)
+        #expect(entry["transportSupervised"] as? Bool == true)
+        #expect(entry["identificationRestricted"] as? Bool == false)
+        #expect(entry["deviceLocked"] as? Bool == false)
+        #expect(entry["relaxedPeriod"] as? Bool == true)
+        #expect(entry["gracePeriodReason"] as? Int == 4)
+        #expect(entry["gracePeriodReasonDescription"] as? String == "Device Unlocked")
+        #expect(entry["profile"] as? Int == 2)
+        #expect(entry["profileDescription"] as? String == "Ask for New Accessories")
+        #expect(entry["cacheMiss"] as? Bool == false)
+    }
+
+    @Test("TRM nil when no transport data")
+    func trmNilWhenNoTransportData() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        #expect(portObj["trm"] as? [[String: Any]] == nil)
+    }
+
+    @Test("TRM multiple transports on same port")
+    func trmMultipleTransportsOnSamePort() throws {
+        let port = makePort()
+        let usb2 = TRMTransport(
+            id: 300, portKey: "2/1", transportType: "USB2",
+            state: 2, stateDescription: "Limited",
+            transportRestricted: true, transportSupervised: true,
+            identificationRestricted: nil, deviceLocked: nil,
+            relaxedPeriod: nil, gracePeriodReason: nil,
+            gracePeriodReasonDescription: nil, profile: nil,
+            profileDescription: nil, cacheMiss: nil
+        )
+        let dp = TRMTransport(
+            id: 301, portKey: "2/1", transportType: "DisplayPort",
+            state: nil, stateDescription: nil,
+            transportRestricted: nil, transportSupervised: false,
+            identificationRestricted: nil, deviceLocked: nil,
+            relaxedPeriod: nil, gracePeriodReason: nil,
+            gracePeriodReasonDescription: nil, profile: nil,
+            profileDescription: nil, cacheMiss: nil
+        )
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: false,
+            trmTransports: [usb2, dp]
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let trmArr = try #require(portObj["trm"] as? [[String: Any]])
+        #expect(trmArr.count == 2)
+
+        let types = trmArr.compactMap { $0["transportType"] as? String }
+        #expect(types.contains("USB2"))
+        #expect(types.contains("DisplayPort"))
+    }
+
+    @Test("TRM filtered by port key")
+    func trmFilteredByPortKey() throws {
+        let port = makePort()  // portKey = "2/1"
+        let matchingTRM = TRMTransport(
+            id: 300, portKey: "2/1", transportType: "USB2",
+            state: 2, stateDescription: "Limited",
+            transportRestricted: true, transportSupervised: true,
+            identificationRestricted: nil, deviceLocked: nil,
+            relaxedPeriod: nil, gracePeriodReason: nil,
+            gracePeriodReasonDescription: nil, profile: nil,
+            profileDescription: nil, cacheMiss: nil
+        )
+        let otherPortTRM = TRMTransport(
+            id: 301, portKey: "2/4", transportType: "USB2",
+            state: 0, stateDescription: "Full",
+            transportRestricted: false, transportSupervised: true,
+            identificationRestricted: nil, deviceLocked: nil,
+            relaxedPeriod: nil, gracePeriodReason: nil,
+            gracePeriodReasonDescription: nil, profile: nil,
+            profileDescription: nil, cacheMiss: nil
+        )
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: false,
+            trmTransports: [matchingTRM, otherPortTRM]
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let trmArr = try #require(portObj["trm"] as? [[String: Any]])
+        // Only the matching portKey should be included
+        #expect(trmArr.count == 1)
+        #expect(trmArr[0]["state"] as? Int == 2)
+    }
+
+    // MARK: - Adapter DTO
+
+    @Test("Adapter DTO appears with full details")
+    func adapterDTOAppearsWithFullDetails() throws {
+        let adapter = AdapterInfo(
+            watts: 100,
+            isCharging: nil,
+            source: "AC",
+            voltageMV: 20000,
+            currentMA: 4990,
+            adapterDescription: "pd charger",
+            powerTier: 2,
+            isWireless: false,
+            hvcMenu: [
+                AdapterHVCEntry(voltageMV: 5000, currentMA: 2960),
+                AdapterHVCEntry(voltageMV: 9000, currentMA: 2980),
+                AdapterHVCEntry(voltageMV: 15000, currentMA: 2990),
+                AdapterHVCEntry(voltageMV: 20000, currentMA: 4990),
+            ]
+        )
+        let json = try JSONFormatter.render(
+            ports: [], sources: [], identities: [], showRaw: false,
+            adapter: adapter
+        )
+        let obj = parse(json)
+        let dto = try #require(obj["adapter"] as? [String: Any])
+        #expect(dto["watts"] as? Int == 100)
+        #expect(dto["source"] as? String == "AC")
+        #expect(dto["voltageMV"] as? Int == 20000)
+        #expect(dto["currentMA"] as? Int == 4990)
+        #expect(dto["description"] as? String == "pd charger")
+        #expect(dto["powerTier"] as? Int == 2)
+        #expect(dto["isWireless"] as? Bool == false)
+
+        let hvc = try #require(dto["hvcMenu"] as? [[String: Any]])
+        #expect(hvc.count == 4)
+        #expect(hvc[0]["voltageMV"] as? Int == 5000)
+        #expect(hvc[0]["currentMA"] as? Int == 2960)
+        #expect(hvc[3]["voltageMV"] as? Int == 20000)
+        #expect(hvc[3]["currentMA"] as? Int == 4990)
+    }
+
+    @Test("Adapter DTO nil when no adapter")
+    func adapterDTONilWhenNoAdapter() throws {
+        let json = try JSONFormatter.render(
+            ports: [], sources: [], identities: [], showRaw: false,
+            adapter: nil
+        )
+        let obj = parse(json)
+        // adapter key should be absent or null
+        #expect(obj["adapter"] as? [String: Any] == nil)
+    }
+
+    @Test("Adapter DTO minimal fields")
+    func adapterDTOMinimalFields() throws {
+        let adapter = AdapterInfo(watts: 30, isCharging: nil, source: "AC")
+        let json = try JSONFormatter.render(
+            ports: [], sources: [], identities: [], showRaw: false,
+            adapter: adapter
+        )
+        let obj = parse(json)
+        let dto = try #require(obj["adapter"] as? [String: Any])
+        #expect(dto["watts"] as? Int == 30)
+        #expect(dto["source"] as? String == "AC")
+        // New fields should be null/absent when not provided
+        #expect(dto["voltageMV"] as? Int == nil)
+        #expect(dto["hvcMenu"] as? [[String: Any]] == nil)
+    }
+
+    @Test("Adapter DTO HVC menu omitted when empty")
+    func adapterDTOHVCMenuOmittedWhenEmpty() throws {
+        let adapter = AdapterInfo(watts: 30, isCharging: nil, source: "AC", hvcMenu: [])
+        let json = try JSONFormatter.render(
+            ports: [], sources: [], identities: [], showRaw: false,
+            adapter: adapter
+        )
+        let obj = parse(json)
+        let dto = try #require(obj["adapter"] as? [String: Any])
+        // Empty HVC menu should be null, not an empty array
+        #expect(dto["hvcMenu"] as? [[String: Any]] == nil)
+    }
+
+    @Test("Port DTO carries IOThunderboltSwitch index reference")
+    func portDtoCarriesIOThunderboltSwitchIndexReference() throws {
+        let host = IOThunderboltSwitch(
+            id: 12345,
+            className: "IOIOThunderboltSwitchType5",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [
+                IOThunderboltPort(
+                    portNumber: 1, socketID: "1", adapterType: .lane,
+                    currentSpeed: .usb4Tb4,
+                    currentWidth: LinkWidth(rawValue: 0x2),
+                    targetWidth: .dual,
+                    rawTargetSpeed: 12, linkBandwidthRaw: 400
+                )
+            ],
+            parentSwitchUID: nil
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host]
+        )
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        // Port-USB-C@1 should resolve via Socket ID "1" -> the host
+        // switch's position in the thunderboltSwitches array, never the
+        // raw hardware UID (a stable machine identifier).
+        #expect(port["thunderboltSwitchIndex"] as? Int == 0)
+        #expect(port["thunderboltSwitchUID"] == nil)
+    }
+
+    /// Companion to the test above: a MagSafe port that shares the same
+    /// `@1` socket suffix as the first USB-C port (universal on M-class
+    /// MacBooks) must NOT inherit the colliding TB switch reference. The
+    /// `socketID(for:)` gate refuses the lookup on any port that doesn't
+    /// carry data. Without this, the MagSafe JSON would mis-report a
+    /// Thunderbolt switch attachment it never had (issue #195).
+    @Test("MagSafe port has null thunderboltSwitchIndex despite colliding suffix")
+    func magSafePortHasNullThunderboltSwitchIndex() throws {
+        let host = IOThunderboltSwitch(
+            id: 408750268121704800,
+            className: "IOIOThunderboltSwitchType5",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [
+                IOThunderboltPort(
+                    portNumber: 1, socketID: "1", adapterType: .lane,
+                    currentSpeed: .usb4Tb4,
+                    currentWidth: LinkWidth(rawValue: 0x2),
+                    targetWidth: .dual,
+                    rawTargetSpeed: 12, linkBandwidthRaw: 400
+                )
+            ],
+            parentSwitchUID: nil
+        )
+
+        let magSafe = USBCPort(
+            id: 2,
+            serviceName: "Port-MagSafe 3@1",
+            className: "AppleTCControllerType11",
+            portDescription: "Port-MagSafe 3@1",
+            portTypeDescription: "MagSafe 3",
+            portNumber: 1,
+            connectionActive: true,
+            activeCable: nil, opticalCable: nil,
+            usbActive: nil, superSpeedActive: nil,
+            usbModeType: nil, usbConnectString: nil,
+            transportsSupported: [],
+            transportsActive: ["CC"],
+            transportsProvisioned: ["CC"],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:],
+            powerCurrentLimits: [], firmwareVersion: nil, bootFlagsHex: nil,
+            rawProperties: [:]
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [magSafe], sources: [], identities: [], showRaw: false,
+            thunderboltSwitches: [host]
+        )
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        // The `thunderboltSwitchIndex` field is encoded with
+        // `encodeIfPresent`, so a nil value is omitted from the JSON
+        // entirely. Either absent or explicitly null is fine; what
+        // matters is that the colliding USB-C@1 switch reference does NOT
+        // appear.
+        let switchIndex = port["thunderboltSwitchIndex"]
+        #expect(switchIndex == nil || switchIndex is NSNull,
+            "MagSafe should not inherit USB-C@1's TB switch via the @N suffix collision; got: \(String(describing: switchIndex))")
+        // Defence-in-depth: no data-link verdict should appear on this
+        // port either, since `carriesData` is false. Same encoding
+        // rule, so the key is either absent or null.
+        let dataLink = port["dataLink"]
+        #expect(dataLink == nil || dataLink is NSNull,
+            "MagSafe should not produce a data-link verdict, got: \(String(describing: dataLink))")
+    }
+
+    /// When the cable's e-marker reports a speed meaningfully below the
+    /// active link rate and there is no controller (CIO) reading to
+    /// break the tie, the new `.cableContradictsActive` bottleneck must
+    /// flow through to the JSON output. Replaces the old silent
+    /// cable-floor promotion that produced a confidently-wrong
+    /// "Running at full data speed" verdict (issue #195 amplifier).
+    @Test("dataLink.bottleneck encodes cableContradictsActive")
+    func dataLinkBottleneckEncodesCableContradictsActive() throws {
+        // 40 Gbps TB lane on the host root; the USB-C port advertises
+        // "CIO" in transportsActive so the activeTBGbps gate is open.
+        let host = IOThunderboltSwitch(
+            id: 1, className: "IOIOThunderboltSwitchType5",
+            vendorID: 1452, vendorName: "Apple Inc.", modelName: "iOS",
+            routerID: 0, depth: 0, routeString: 0,
+            upstreamPortNumber: 7, maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 12),
+            ports: [
+                IOThunderboltPort(
+                    portNumber: 1, socketID: "1", adapterType: .lane,
+                    currentSpeed: .usb4Tb4,
+                    currentWidth: LinkWidth(rawValue: 0x2),
+                    targetWidth: nil, rawTargetSpeed: nil,
+                    linkBandwidthRaw: nil
+                )
+            ],
+            parentSwitchUID: nil
+        )
+
+        let usbC = USBCPort(
+            id: 1,
+            serviceName: "Port-USB-C@1",
+            className: "AppleHPMInterfaceType10",
+            portDescription: "Port-USB-C@1",
+            portTypeDescription: "USB-C",
+            portNumber: 1,
+            connectionActive: true,
+            activeCable: nil, opticalCable: nil,
+            usbActive: nil, superSpeedActive: nil,
+            usbModeType: nil, usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3", "CIO", "DisplayPort"],
+            transportsActive: ["CC", "CIO"],
+            transportsProvisioned: [],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:],
+            powerCurrentLimits: [], firmwareVersion: nil, bootFlagsHex: nil,
+            rawProperties: [:]
+        )
+
+        // E-marker reporting USB 2.0 (speedCode 0 = 0.48 Gbps); no CIO
+        // capability passed, so there is no tie-break.
+        let validLatency: UInt32 = 1 << 13
+        let cableVDO: UInt32 = 0 | (1 << 5) | validLatency
+        let idHeader: UInt32 = 0x1800_0000
+        let cableEmarker = USBPDSOP(
+            id: 9, endpoint: .sopPrime,
+            parentPortType: 2, parentPortNumber: 1,
+            vendorID: 0, productID: 0, bcdDevice: 0,
+            vdos: [idHeader, 0, 0, cableVDO],
+            specRevision: 0
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [usbC], sources: [], identities: [cableEmarker],
+            showRaw: false, thunderboltSwitches: [host, attachedPartner(parent: host.id)]
+        )
+        let obj = parse(json)
+        let port = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let dataLink = port["dataLink"] as? [String: Any] ?? [:]
+        #expect(dataLink["bottleneck"] as? String == "cableContradictsActive",
+            "expected cableContradictsActive bottleneck, got: \(String(describing: dataLink["bottleneck"]))")
+        #expect(dataLink["isWarning"] as? Bool == true,
+            "cableContradictsActive should warn; got isWarning: \(String(describing: dataLink["isWarning"]))")
+    }
+
+    @Test("Display verdict appears in the port `displays` array")
+    func displayDTOAppears() throws {
+        // makePort is portKey "2/1"; the DP node's parent must match so the
+        // formatter correlates them. A 2-lane HBR2 link with the G34w-10 EDID
+        // and no live mode or display-node statement: the verdict is
+        // unknownMode (issue #664). The 100 Hz mode is declared in the CTA-861
+        // extension, so the base block alone is not enough for the parse
+        // (issue #596).
+        let dp = IOPortTransportStateDisplayPort(
+            link: DisplayPortLink(
+                active: true, laneCount: 2, maxLaneCount: 4, linkRate: 3,
+                linkRateDescription: "5.4 Gbps (HBR2)", tunneled: false, hpdState: 1
+            ),
+            monitor: MonitorInfo(
+                manufacturerName: nil, productName: nil, productId: nil,
+                yearOfManufacture: nil,
+                edid: Data(EDIDInfoTests.g34wBaseBlock
+                    + EDIDInfoTests.hexBytes(EDIDInfoTests.g34wExtensionHex))
+            ),
+            parentPortType: 2,
+            parentPortNumber: 1
+        )
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [],
+            showRaw: false, displayPorts: [dp]
+        )
+        let port = (parse(json)["ports"] as? [[String: Any]])?.first ?? [:]
+        let displays = port["displays"] as? [[String: Any]] ?? []
+        #expect(displays.count == 1)
+        let display = displays.first ?? [:]
+        #expect(display["bottleneck"] as? String == "unknownMode", "probe-33-shaped input: an EDID but no live mode and no statement")
+        #expect(display["monitorName"] as? String == "LEN G34w-10")
+        #expect(display["lanes"] as? Int == 2)
+        #expect(display["maxLanes"] as? Int == 4)
+    }
+
+    @Test("the display object carries the EDID's declared modes")
+    func displayCarriesDeclaredModes() throws {
+        // Same G34w-10 base block + CTA-861 extension as `displayDTOAppears`,
+        // so `EDIDInfo(Data(bytes))` parsed independently gives the ground
+        // truth to compare the JSON output against.
+        let bytes = EDIDInfoTests.g34wBaseBlock + EDIDInfoTests.hexBytes(EDIDInfoTests.g34wExtensionHex)
+        let expectedEDID = try #require(EDIDInfo(Data(bytes)))
+        let dp = IOPortTransportStateDisplayPort(
+            link: DisplayPortLink(
+                active: true, laneCount: 2, maxLaneCount: 4, linkRate: 3,
+                linkRateDescription: "5.4 Gbps (HBR2)", tunneled: false, hpdState: 1
+            ),
+            monitor: MonitorInfo(
+                manufacturerName: nil, productName: nil, productId: nil,
+                yearOfManufacture: nil, edid: Data(bytes)
+            ),
+            parentPortType: 2,
+            parentPortNumber: 1
+        )
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [],
+            showRaw: false, displayPorts: [dp]
+        )
+        let port = (parse(json)["ports"] as? [[String: Any]])?.first ?? [:]
+        let displays = port["displays"] as? [[String: Any]] ?? []
+        let display = displays.first ?? [:]
+
+        let edidObj = try #require(display["edid"] as? [String: Any])
+        let modes = try #require(edidObj["modes"] as? [[String: Any]])
+        #expect(modes.count == expectedEDID.modes.count)
+        let preferredMode = try #require(edidObj["preferredMode"] as? [String: Any])
+        #expect(preferredMode["source"] as? String == expectedEDID.preferredMode?.sourceDescription)
+
+        let topMode = try #require(display["topMode"] as? [String: Any])
+        let source = try #require(topMode["source"] as? String)
+        #expect(!source.isEmpty)
+
+        let blocks = try #require(edidObj["blocks"] as? [[String: Any]])
+        #expect((blocks.first ?? [:])["kind"] as? String == "base")
+    }
+
+    @Test("the display object carries macOS's statement, the cross-check and the encoding fields")
+    func displayCarriesTheDrivenTimingStatement() throws {
+        let bytes = EDIDInfoTests.g34wBaseBlock + EDIDInfoTests.hexBytes(EDIDInfoTests.g34wExtensionHex)
+        let statement = DisplayTimingStatement(
+            colourModes: [
+                DisplayColourMode(id: 7, encoding: .rgb444, depth: 8, supportsDSC: 0, isVirtual: false, downstreamFormat: nil),
+                DisplayColourMode(id: 9, encoding: .ycbcr444, depth: 8, supportsDSC: 0, isVirtual: false,
+                                  downstreamFormat: DisplayDownstreamFormat(encoding: .ycbcr420, depth: 8)),
+                DisplayColourMode(id: 3, encoding: .ycbcr422, depth: 12, supportsDSC: 0, isVirtual: true, downstreamFormat: nil),
+            ],
+            dscRequiredList: [], unsafeList: [7, 9, 3], validPixelEncodings: 0x1b4f, colourModesComplete: true, dscListComplete: true, unsafeListComplete: true,
+            allTimings: [DisplayNodeTiming(id: 42, width: 3440, height: 1440, refreshHz: 100.0, pixelClockHz: 533_160_000,
+                                           lists: DisplayTimingLists(colourModes: [DisplayColourMode(id: 7, encoding: .rgb444, depth: 8, supportsDSC: 0, isVirtual: false, downstreamFormat: nil)],
+                                                                     dscRequiredList: [], unsafeList: [], validPixelEncodings: 0x1b4f, colourModesComplete: true, dscListComplete: true, unsafeListComplete: true))])
+        let live = DisplayCurrentMode(width: 3440, height: 1440, refreshHz: 100, bitsPerComponent: 8, pixelClockHz: 600_000_000)
+        let dp = IOPortTransportStateDisplayPort(
+            link: DisplayPortLink(active: true, laneCount: 4, maxLaneCount: 4, linkRate: 3,
+                                  linkRateDescription: "5.4 Gbps (HBR2)", tunneled: false, hpdState: 1),
+            monitor: MonitorInfo(manufacturerName: "LEN", productName: nil, productId: nil, yearOfManufacture: nil, edid: Data(bytes)),
+            dfpType: "HDMI", parentPortType: 2, parentPortNumber: 1,
+            currentMode: live, drivenTiming: statement
+        )
+        let json = try JSONFormatter.render(ports: [makePort()], sources: [], identities: [], showRaw: false, displayPorts: [dp])
+        let port = (parse(json)["ports"] as? [[String: Any]])?.first ?? [:]
+        let display = (port["displays"] as? [[String: Any]])?.first ?? [:]
+        #expect(display["bottleneck"] as? String == "fine", "got: \(String(describing: display["bottleneck"]))")
+        #expect(display["isAppleDisplay"] as? Bool == false)
+        let driven = try #require(display["drivenTiming"] as? [String: Any])
+        #expect(driven["dscReading"] as? String == "uncompressed")
+        #expect(driven["dscRequiredIDs"] as? [Int] == [])
+        #expect(driven["dscCapableIDs"] as? [Int] == [])
+        #expect(driven["unsafeIDs"] as? [Int] == [7, 9], "sorted, virtual resolved out")
+        // The lists as the node printed them, sorted, beside the resolved sets (PR #665 gate fix round 2, L1).
+        #expect(driven["unsafeIDsRaw"] as? [Int] == [3, 7, 9], "the virtual 3 the resolved set drops is still visible")
+        #expect(driven["dscRequiredIDsRaw"] as? [Int] == [])
+        #expect(driven["validPixelEncodings"] as? Int == 0x1b4f)
+        #expect(driven["colourModesComplete"] as? Bool == true && driven["dscListComplete"] as? Bool == true && driven["unsafeListComplete"] as? Bool == true)
+        #expect(driven["listsComplete"] == nil, "the single flag is gone (ruling 42)")
+        #expect(driven["downstream420"] as? String == "some", "1 of 2 non-virtual modes converts (ruling 44)")
+        let modes = try #require(driven["colourModes"] as? [[String: Any]])
+        #expect(modes.count == 3)
+        #expect(modes[1]["encoding"] as? Int == 3)
+        #expect(modes[1]["encodingName"] as? String == "YCbCr 4:4:4")
+        let downstream = try #require(modes[1]["downstreamFormat"] as? [String: Any])
+        #expect(downstream["encoding"] as? Int == 1)
+        #expect(downstream["encodingName"] as? String == "YCbCr 4:2:0")
+        #expect(downstream["depth"] as? Int == 8)
+        #expect(modes[2]["isVirtual"] as? Bool == true)
+        let cross = try #require(display["crossCheck"] as? [String: Any])
+        let need = try #require(cross["liveNeededGbps"] as? Double)
+        #expect(abs(need - 14.4) < 1e-9, "600 MHz x 24")
+        let top = try #require(cross["usableGbpsMax"] as? Double)
+        #expect(abs(top - 17.28) < 1e-9)
+        let bottom = try #require(cross["usableGbpsMin"] as? Double)
+        #expect(abs(bottom - 17.28 * 0.9765625) < 1e-9)
+        #expect(cross["statementContradiction"] as? Bool == false)
+        let current = try #require(display["currentMode"] as? [String: Any])
+        #expect(current["pixelClockHz"] as? Int == 600_000_000)
+        #expect(current["pixelEncoding"] == nil, "RGB beside 4:4:4: the reader left it nil, and nil is omitted")
+        let onLink = try #require(display["topModeOnLink"] as? [String: Any])
+        #expect(onLink["match"] as? String == "exact")
+        #expect(onLink["availability"] as? String == "offeredUncompressed")
+        #expect(onLink["statementOffersTopMode"] as? Bool == true)
+        #expect(onLink["topModeListedByNode"] as? Bool == true)
+        let topTiming = try #require(onLink["timing"] as? [String: Any])
+        #expect(topTiming["id"] as? Int == 42)
+        #expect(topTiming["interlaced"] as? Bool == false, "the node timing's interlace flag, additive (PR #665 gate rerun, Codex R1)")
+        #expect(topTiming["pixelClockHz"] as? Int == 533_160_000, "the real EDID's declared top mode (measured, EDIDInfoTests.scansAllDetailedTimings), not the live mode's clock")
+        #expect((topTiming["lists"] as? [String: Any])?["dscReading"] as? String == "uncompressed")
+        #expect(display["cableAssessment"] as? String == "unlikelyTheCable", "the statement's reason")
+        // Without a statement the three blocks are absent, not empty.
+        let plain = IOPortTransportStateDisplayPort(link: dp.link, monitor: dp.monitor, parentPortType: 2, parentPortNumber: 1)
+        let plainJSON = try JSONFormatter.render(ports: [makePort()], sources: [], identities: [], showRaw: false, displayPorts: [plain])
+        let plainDisplay = ((parse(plainJSON)["ports"] as? [[String: Any]])?.first?["displays"] as? [[String: Any]])?.first ?? [:]
+        #expect(plainDisplay["drivenTiming"] == nil)
+        #expect(plainDisplay["crossCheck"] == nil)
+        #expect(plainDisplay["topModeOnLink"] == nil)
+        #expect(plainDisplay["isAppleDisplay"] as? Bool == false)
+        #expect(plainDisplay["bottleneck"] as? String == "unknownMode", "probe-33-shaped input: no statement")
+    }
+
+    @Test("Two monitors on one port both appear in `displays` (issue #271)")
+    func twoDisplaysOnOnePort() throws {
+        // A dock fanning two monitors out of one Thunderbolt port produces two
+        // DisplayPort nodes that share the host port (parentPortNumber). Both
+        // must surface, not just the first.
+        func dpNode(active: Bool, lanes: Int) -> IOPortTransportStateDisplayPort {
+            IOPortTransportStateDisplayPort(
+                link: DisplayPortLink(
+                    active: active, laneCount: lanes, maxLaneCount: 4, linkRate: 3,
+                    linkRateDescription: "5.4 Gbps (HBR2)", tunneled: true, hpdState: 1
+                ),
+                monitor: MonitorInfo(
+                    manufacturerName: nil, productName: nil, productId: nil,
+                    yearOfManufacture: nil, edid: Data(EDIDInfoTests.g34wBaseBlock)
+                ),
+                parentPortType: 2,
+                parentPortNumber: 1
+            )
+        }
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [],
+            showRaw: false, displayPorts: [dpNode(active: true, lanes: 2), dpNode(active: true, lanes: 4)]
+        )
+        let port = (parse(json)["ports"] as? [[String: Any]])?.first ?? [:]
+        let displays = port["displays"] as? [[String: Any]] ?? []
+        #expect(displays.count == 2, "both monitors should appear; got \(displays.count)")
+    }
+
+    // MARK: - Private key redaction
+
+    /// --json --raw must omit ConnectionUUID from rawProperties output but keep
+    /// legitimate keys like PortType intact.
+    @Test("--raw JSON output omits ConnectionUUID and retains VendorID")
+    func rawJSONOmitsConnectionUUID() throws {
+        let port = USBCPort(
+            id: 1, serviceName: "Port-USB-C@1",
+            className: "AppleHPMInterfaceType10",
+            portDescription: "Port-USB-C@1",
+            portTypeDescription: "USB-C",
+            portNumber: 1,
+            connectionActive: true,
+            activeCable: nil, opticalCable: nil, usbActive: nil,
+            superSpeedActive: nil, usbModeType: nil, usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3"],
+            transportsActive: ["USB3"], transportsProvisioned: [],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:], powerCurrentLimits: [],
+            firmwareVersion: nil, bootFlagsHex: nil,
+            rawProperties: [
+                "ConnectionUUID": "DDDD6666-EEEE-7777-FFFF-888899990000",
+                "PortType": "2",
+                "VendorID": "0x05AC",
+            ]
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: true
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let raw = try #require(portObj["rawProperties"] as? [String: Any])
+
+        #expect(raw["ConnectionUUID"] == nil, "ConnectionUUID must be redacted from JSON output")
+        #expect(raw["PortType"] as? String == "2", "PortType must appear in JSON output")
+        #expect(raw["VendorID"] as? String == "0x05AC", "VendorID must appear in JSON output")
+    }
+
+    /// Privacy regression: the HPM controller UUID must never appear in
+    /// JSON output, even when a future readAll path captures a raw "UUID" key.
+    /// The UUID is an internal SMC join key; exposing it would uniquely identify
+    /// the machine on every shared ioreg dump.
+    @Test("--raw JSON output omits UUID (privacy guard)")
+    func rawJSONOmitsHPMControllerUUID() throws {
+        let port = USBCPort(
+            id: 1, serviceName: "Port-USB-C@1",
+            className: "AppleHPMInterfaceType10",
+            portDescription: "Port-USB-C@1",
+            portTypeDescription: "USB-C",
+            portNumber: 1,
+            connectionActive: true,
+            activeCable: nil, opticalCable: nil, usbActive: nil,
+            superSpeedActive: nil, usbModeType: nil, usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3"],
+            transportsActive: ["USB3"], transportsProvisioned: [],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:], powerCurrentLimits: [],
+            firmwareVersion: nil, bootFlagsHex: nil,
+            // Simulate a future readAll that accidentally captured UUID.
+            rawProperties: [
+                "UUID": "7C30AF2D-FEED-BEEF-CAFE-112233445566",
+                "PortType": "2",
+            ]
+        )
+
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [], showRaw: true
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let raw = portObj["rawProperties"] as? [String: Any] ?? [:]
+
+        #expect(raw["UUID"] == nil, "UUID must be redacted from JSON output (internal join key)")
+        #expect(raw["PortType"] as? String == "2", "PortType must appear in JSON output")
+
+        // Also confirm hpmControllerUUID does not appear anywhere in the JSON as
+        // a field name. It is purely internal and has no JSON representation.
+        #expect(!json.contains("hpmControllerUUID"),
+            "hpmControllerUUID must not appear anywhere in JSON output")
+        #expect(!json.contains("7C30AF2D"),
+            "UUID value must not appear anywhere in JSON output")
+    }
+
+    // MARK: - Built-in display port (issue #352)
+
+    @Test("Built-in HDMI port appears as a top-level array with the agreed shape")
+    func builtInHDMIPortJSONShape() throws {
+        let hdmiPort = BuiltInDisplayPort(
+            portType: "HDMI",
+            portNumber: 1,
+            displays: [
+                IOPortTransportStateDisplayPort(
+                    link: DisplayPortLink(
+                        active: true, laneCount: 4, maxLaneCount: 4, linkRate: 4,
+                        linkRateDescription: "8.1 Gbps (HBR3)", tunneled: false, hpdState: 1
+                    ),
+                    monitor: nil,
+                    parentPortType: 6,
+                    parentPortTypeDescription: "HDMI",
+                    parentPortNumber: 1
+                )
+            ]
+        )
+        let json = try JSONFormatter.render(
+            ports: [makePort()],
+            sources: [], identities: [], showRaw: false,
+            builtInDisplayPorts: [hdmiPort]
+        )
+        let top = parse(json)
+        let arr = top["builtInDisplayPorts"] as? [[String: Any]]
+        #expect(arr != nil, "top-level builtInDisplayPorts must be present when supplied")
+        let entry = try #require(arr?.first)
+        #expect(entry["name"] as? String == "Port-HDMI@1")
+        #expect(entry["type"] as? String == "HDMI")
+        #expect(entry["portNumber"] as? Int == 1)
+        #expect((entry["displays"] as? [[String: Any]])?.count == 1)
+    }
+
+    @Test("Built-in HDMI port key omitted when none supplied")
+    func builtInHDMIPortJSONOmittedWhenEmpty() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()],
+            sources: [], identities: [], showRaw: false,
+            builtInDisplayPorts: []
+        )
+        let top = parse(json)
+        #expect(top["builtInDisplayPorts"] == nil,
+            "top-level builtInDisplayPorts must be absent when there are none")
+    }
+
+    // MARK: - Cable type source and plug type
+
+    /// The CalDigit 2M Thunderbolt 4 cable from issue #111, VDO[3] bit 3
+    /// clear: only the port controller can call this one active.
+    private func caldigitBitThreeClear() -> USBPDSOP {
+        USBPDSOP(
+            id: 1, endpoint: .sopPrime,
+            parentPortType: 2, parentPortNumber: 1,
+            vendorID: 0x2B1D, productID: 0x1901, bcdDevice: 0x97,
+            vdos: [0x1C002B1D, 0x00000000, 0x19010097, 0x32084842],
+            specRevision: 3
+        )
+    }
+
+    private func activeCablePort() -> USBCPort {
+        USBCPort(
+            id: 1, serviceName: "Port-USB-C@1", className: "AppleHPMInterfaceType10",
+            portDescription: "Port-USB-C@1", portTypeDescription: "USB-C",
+            portNumber: 1, connectionActive: true, activeCable: true, opticalCable: nil,
+            usbActive: nil, superSpeedActive: true, usbModeType: nil, usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3"],
+            transportsActive: ["USB3"],
+            transportsProvisioned: [],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:], powerCurrentLimits: [],
+            firmwareVersion: nil, bootFlagsHex: nil, rawProperties: ["PortType": "2"]
+        )
+    }
+
+    private func cableObject(port: USBCPort, identity: USBPDSOP) throws -> [String: Any] {
+        let json = try JSONFormatter.render(
+            ports: [port], sources: [], identities: [identity], showRaw: false
+        )
+        let portObj = (parse(json)["ports"] as? [[String: Any]])?.first ?? [:]
+        return try #require(portObj["cable"] as? [String: Any])
+    }
+
+    @Test("Port-promoted cable reports type active with typeSource portController")
+    func portPromotedCableReportsTypeSource() throws {
+        let cable = try cableObject(port: activeCablePort(), identity: caldigitBitThreeClear())
+        #expect(cable["type"] as? String == "active")
+        #expect(cable["typeSource"] as? String == "portController")
+    }
+
+    @Test("An ordinary passive cable reports typeSource emarker")
+    func ordinaryPassiveCableReportsEmarkerSource() throws {
+        let id = cableIdentity(vendorID: 0x05AC, cableVDO: (0b10 << 5) | 0b011 | Self.validLatency)
+        let cable = try cableObject(port: makePort(), identity: id)
+        #expect(cable["type"] as? String == "passive")
+        #expect(cable["typeSource"] as? String == "emarker")
+    }
+
+    @Test("plugType carries the stable report label, not the localized one")
+    func plugTypeCarriesReportLabel() throws {
+        let base = (0b10 << 5) | UInt32(0b011) | Self.validLatency
+        let captive = try cableObject(
+            port: makePort(), identity: cableIdentity(vendorID: 0x05AC, cableVDO: base | (0b11 << 18)))
+        #expect(captive["plugType"] as? String == "captive")
+        let typeC = try cableObject(
+            port: makePort(), identity: cableIdentity(vendorID: 0x05AC, cableVDO: base | (0b10 << 18)))
+        #expect(typeC["plugType"] as? String == "Type-C")
+    }
+
+    @Test("A port-promoted cable carrying VDO[4] emits its active-cable block")
+    func portPromotedCableEmitsActiveBlock() throws {
+        // Synthetic, and it has to be: every corpus port the controller
+        // promotes carries exactly 4 VDOs. Without the classifier gate the
+        // JSON says type "active" with active null, while the port card
+        // prints the medium and element for the same read.
+        let passiveIDHeader: UInt32 = (3 << 27) | UInt32(0x2B1D)
+        let passiveVDO3: UInt32 = 0b011 | UInt32(2 << 5) | Self.validLatency
+        let identity = USBPDSOP(
+            id: 1, endpoint: .sopPrime,
+            parentPortType: 2, parentPortNumber: 1,
+            vendorID: 0x2B1D, productID: 0x1901, bcdDevice: 0x97,
+            vdos: [passiveIDHeader, 0, 0x19010097, passiveVDO3, 0x11082041],
+            specRevision: 3
+        )
+        let cable = try cableObject(port: activeCablePort(), identity: identity)
+        #expect(cable["type"] as? String == "active")
+        #expect(cable["active"] as? [String: Any] != nil,
+                "a cable reported active must carry its active-cable block")
+    }
+
+    // MARK: - Apple accessory identity (UVDM)
+
+    /// End-to-end through the top-level render, deliberately not through
+    /// `PortDTO`: the identities have to survive the `CableSnapshot` this
+    /// function rebuilds from its loose parameters, and a hand-built DTO
+    /// cannot prove that.
+    @Test("Accessory block carries the name and the serial exactly as read")
+    func accessoryBlockPresentWithSerialIntact() throws {
+        let identity = AppleAccessoryIdentity(
+            id: 700,
+            portKey: "2/1",
+            manufacturer: "Apple Inc.",
+            vendor: "Apple Inc.",
+            product: "iPhone",
+            userString: nil,
+            model: "D94AP",
+            serialNumber: "F2LX1234ABCD",
+            hardwareVersion: "1",
+            vendorID: 0x05AC,
+            productID: 0x12A8
+        )
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false,
+            accessoryIdentities: [identity]
+        )
+        // The rendered string, not just the parsed tree: this is the assertion
+        // that would have caught the name never reaching CLI output at all.
+        #expect(json.contains("iPhone"), "the accessory name must reach the rendered JSON")
+
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        let accessory = try #require(portObj["accessory"] as? [String: Any])
+        #expect(accessory["name"] as? String == "iPhone")
+        #expect(accessory["model"] as? String == "D94AP")
+        #expect(accessory["hardwareVersion"] as? String == "1")
+        #expect(accessory["serialNumber"] as? String == "F2LX1234ABCD")
+        #expect(accessory["source"] as? String == "uvdm")
+    }
+
+    @Test("Accessory key omitted when the port publishes no UVDM identity")
+    func accessoryKeyOmittedWhenNoIdentity() throws {
+        let json = try JSONFormatter.render(
+            ports: [makePort()], sources: [], identities: [], showRaw: false
+        )
+        let obj = parse(json)
+        let portObj = (obj["ports"] as? [[String: Any]])?.first ?? [:]
+        #expect(portObj["accessory"] == nil,
+            "the accessory key must be absent, not null, when there is nothing to report")
+    }
+}

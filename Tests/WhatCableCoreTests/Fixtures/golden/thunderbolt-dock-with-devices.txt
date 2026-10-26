@@ -1,0 +1,65 @@
+=== Port-USB-C@1 (USB-C) ===
+Nothing connected
+Plug a cable into Port-USB-C@1 to see what it can do.
+
+Raw IOKit properties:
+  PortType = 2
+
+=== Port-USB-C@4 (USB-C) ===
+Thunderbolt / USB4
+Supports high-speed data, smart cable.
+
+  What the cable's e-marker reports
+    • Cable speed: USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)
+    • Cable rated for 5 A at up to 20V (~100W)
+    • Active optical cable, re-timer
+    • Optical fibres are electrically isolated end-to-end
+
+  What your Mac measured
+    • Linked at up to 20 Gb/s × 2
+
+  What WhatCable knows
+    • Made by Apple (0x05AC), per our bundled vendor list
+
+Data: Cable is limiting data speed
+  The Mac can do 80 Gbps, but the cable only carries 40 Gbps. A faster cable would unlock full speed.
+
+Connected devices:
+  • Magic Keyboard (Apple) - High Speed (480 Mbps)
+  • Dock Hub - Super Speed (5 Gbps)
+
+Active cable (VDO 2):
+  Physical connection = Optical
+  Active element = Re-timer
+  Optically isolated = Yes
+  USB lanes = One
+  USB Gen = Gen 1
+  USB4 supported = Yes
+  USB 3.2 supported = Yes
+  USB 2.0 supported = Yes
+  USB 2.0 hub hops = 0
+  USB4 asymmetric = No
+  U3 to U0 transition = Direct
+  Idle power (U3/CLd) = > 10 mW
+  Max operating temp = 85°C
+  Shutdown temp = 100°C
+
+Raw IOKit properties:
+  PortType = 2
+
+=== Port-USB-C@5 (USB-C) ===
+Thunderbolt / USB4
+Supports high-speed data.
+
+  What the cable's e-marker reports
+    No e-marker response. Cable details aren't available on this connection. Try another device to read it.
+
+  What your Mac measured
+    • Thunderbolt / USB4 link active
+
+Raw IOKit properties:
+  PortType = 2
+
+Other USB devices:
+  • Orphan Hub - Super Speed (5 Gbps)
+  Reached through a Thunderbolt dock or display, so there's no cable, power, or Thunderbolt data for them.

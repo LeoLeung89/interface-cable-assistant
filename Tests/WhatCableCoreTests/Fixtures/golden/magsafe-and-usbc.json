@@ -1,0 +1,71 @@
+{
+  "isDesktopMac" : false,
+  "ports" : [
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+
+      ],
+      "bullets" : [
+
+      ],
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : false,
+      "headline" : "Nothing connected",
+      "name" : "Port-USB-C@1",
+      "pdCapable" : false,
+      "powerSources" : [
+
+      ],
+      "status" : "empty",
+      "subtitle" : "Plug a cable into Port-USB-C@1 to see what it can do.",
+      "transports" : {
+        "active" : [
+
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+
+        ]
+      },
+      "type" : "USB-C"
+    },
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+
+      ],
+      "bullets" : [
+
+      ],
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : false,
+      "headline" : "Nothing connected",
+      "name" : "Port-MagSafe 3@2",
+      "pdCapable" : false,
+      "powerSources" : [
+
+      ],
+      "status" : "empty",
+      "subtitle" : "Plug a cable into Port-MagSafe 3@2 to see what it can do.",
+      "transports" : {
+        "active" : [
+
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+
+        ]
+      },
+      "type" : "MagSafe 3"
+    }
+  ],
+  "thunderboltSwitches" : [
+
+  ],
+  "version" : "<version>"
+}

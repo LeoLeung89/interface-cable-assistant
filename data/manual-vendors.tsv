@@ -1,0 +1,22 @@
+# Manual vendor mappings.
+#
+# Vendors that are not in the USB-IF registered list or the usb.ids
+# community list, but have a clearly identifiable owner based on the
+# cables that ship with the VID. Used to give cables a recognisable
+# brand name in the app. The "not USB-IF registered" trust signal is
+# preserved because these rows go in with source='manual', not
+# source='usbif'.
+#
+# Criteria for adding an entry:
+#   - Multiple cables in data/known-cables.md share the VID
+#   - All known cables with that VID are from the same brand
+#   - The VID is not in usbif-vendors.tsv or the usb.ids community list
+#
+# Format: <hex VID with or without 0x prefix>\t<vendor name>
+# Lines beginning with # are comments. Blank lines are ignored.
+#
+# VID 0x01B6 is CalDigit's Thunderbolt-class identifier (separate from
+# their USB-IF VID 0x2188 / 8584). Documented across issues #89, #90,
+# #209, #211, #243, #254, #329, #358 — every reported cable using
+# 0x01B6 is CalDigit-branded (TB4 Pro, TB5 Pro, TS5 Plus bundled).
+0x01B6	CalDigit, Inc.

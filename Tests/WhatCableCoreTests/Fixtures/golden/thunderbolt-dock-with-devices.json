@@ -1,0 +1,265 @@
+{
+  "isDesktopMac" : false,
+  "otherUSBDevices" : {
+    "devices" : [
+      {
+        "locationID" : "0x04100000",
+        "name" : "Orphan Hub",
+        "productID" : 4660,
+        "speed" : "Super Speed (5 Gbps)",
+        "vendorID" : 1452,
+        "vendorName" : "Apple"
+      }
+    ]
+  },
+  "ports" : [
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+
+      ],
+      "bullets" : [
+
+      ],
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : false,
+      "headline" : "Nothing connected",
+      "name" : "Port-USB-C@1",
+      "pdCapable" : false,
+      "powerSources" : [
+
+      ],
+      "rawProperties" : {
+        "PortType" : "2"
+      },
+      "status" : "empty",
+      "subtitle" : "Plug a cable into Port-USB-C@1 to see what it can do.",
+      "transports" : {
+        "active" : [
+
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+
+        ]
+      },
+      "type" : "USB-C"
+    },
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+        {
+          "header" : "What the cable's e-marker reports",
+          "lines" : [
+            "Cable speed: USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)",
+            "Cable rated for 5 A at up to 20V (~100W)",
+            "Active optical cable, re-timer",
+            "Optical fibres are electrically isolated end-to-end"
+          ],
+          "source" : "emarker"
+        },
+        {
+          "header" : "What your Mac measured",
+          "lines" : [
+            "Linked at up to 20 Gb\/s × 2"
+          ],
+          "source" : "measured"
+        },
+        {
+          "header" : "What WhatCable knows",
+          "lines" : [
+            "Made by Apple (0x05AC), per our bundled vendor list"
+          ],
+          "source" : "database"
+        }
+      ],
+      "bullets" : [
+        "Cable speed: USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)",
+        "Cable rated for 5 A at up to 20V (~100W)",
+        "Active optical cable, re-timer",
+        "Optical fibres are electrically isolated end-to-end",
+        "Linked at up to 20 Gb\/s × 2",
+        "Made by Apple (0x05AC), per our bundled vendor list"
+      ],
+      "cable" : {
+        "active" : {
+          "activeElement" : "Re-timer",
+          "maxOperatingTempC" : 85,
+          "opticallyIsolated" : true,
+          "physicalConnection" : "Optical",
+          "shutdownTempC" : 100,
+          "twoLanesSupported" : false,
+          "u3CLdPower" : "> 10 mW",
+          "usb2Supported" : true,
+          "usb32Supported" : true,
+          "usb4Supported" : true,
+          "usbGen2OrHigher" : false
+        },
+        "activeLayoutContradiction" : false,
+        "currentRating" : "5 A",
+        "endpoint" : "SOP''",
+        "maxVolts" : 20,
+        "maxWatts" : 100,
+        "plugType" : "Type-A",
+        "speed" : "USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)",
+        "type" : "active",
+        "typeSource" : "emarker",
+        "vendorID" : 1452,
+        "vendorName" : "Apple"
+      },
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : true,
+      "dataLink" : {
+        "bottleneck" : "cableLimit",
+        "cableSignalConflict" : false,
+        "detail" : "The Mac can do 80 Gbps, but the cable only carries 40 Gbps. A faster cable would unlock full speed.",
+        "isWarning" : true,
+        "summary" : "Cable is limiting data speed"
+      },
+      "devices" : [
+        {
+          "locationID" : "0x01000000",
+          "name" : "Magic Keyboard",
+          "productID" : 4660,
+          "speed" : "High Speed (480 Mbps)",
+          "vendorID" : 1452,
+          "vendorName" : "Apple"
+        },
+        {
+          "locationID" : "0x03100000",
+          "name" : "Dock Hub",
+          "productID" : 4660,
+          "speed" : "Super Speed (5 Gbps)",
+          "vendorID" : 1452,
+          "vendorName" : "Apple"
+        }
+      ],
+      "headline" : "Thunderbolt \/ USB4",
+      "name" : "Port-USB-C@4",
+      "pdCapable" : true,
+      "powerSources" : [
+
+      ],
+      "rawProperties" : {
+        "PortType" : "2"
+      },
+      "status" : "thunderboltCable",
+      "subtitle" : "Supports high-speed data, smart cable.",
+      "thunderboltSwitchIndex" : 0,
+      "transports" : {
+        "active" : [
+          "CC",
+          "USB3",
+          "CIO"
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+          "CC",
+          "USB2",
+          "USB3",
+          "CIO",
+          "DisplayPort"
+        ]
+      },
+      "trust" : {
+        "confirmedBy" : [
+          "data"
+        ],
+        "contradiction" : false,
+        "tier" : "green"
+      },
+      "type" : "USB-C"
+    },
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+        {
+          "header" : "What the cable's e-marker reports",
+          "lines" : [
+
+          ],
+          "source" : "emarker",
+          "state" : "No e-marker response. Cable details aren't available on this connection. Try another device to read it."
+        },
+        {
+          "header" : "What your Mac measured",
+          "lines" : [
+            "Thunderbolt \/ USB4 link active"
+          ],
+          "source" : "measured"
+        }
+      ],
+      "bullets" : [
+        "No e-marker response. Cable details aren't available on this connection. Try another device to read it.",
+        "Thunderbolt \/ USB4 link active"
+      ],
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : true,
+      "headline" : "Thunderbolt \/ USB4",
+      "name" : "Port-USB-C@5",
+      "pdCapable" : true,
+      "powerSources" : [
+
+      ],
+      "rawProperties" : {
+        "PortType" : "2"
+      },
+      "status" : "thunderboltCable",
+      "subtitle" : "Supports high-speed data.",
+      "transports" : {
+        "active" : [
+          "CC",
+          "USB3",
+          "CIO"
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+          "CC",
+          "USB2",
+          "USB3",
+          "CIO",
+          "DisplayPort"
+        ]
+      },
+      "type" : "USB-C"
+    }
+  ],
+  "thunderboltSwitches" : [
+    {
+      "className" : "IOThunderboltSwitchType5",
+      "depth" : 0,
+      "index" : 0,
+      "maxPortNumber" : 7,
+      "modelName" : "Mac",
+      "ports" : [
+        {
+          "adapterType" : "lane",
+          "generation" : "usb4Tb4",
+          "linkActive" : false,
+          "perLaneGbps" : 20,
+          "portNumber" : 1,
+          "rawSpeedCode" : 4,
+          "rawWidthCode" : 2,
+          "rxGbps" : 40,
+          "rxLanes" : 2,
+          "socketID" : "4",
+          "txGbps" : 40,
+          "txLanes" : 2
+        }
+      ],
+      "routeString" : 0,
+      "routerID" : 0,
+      "supportedSpeedMask" : 14,
+      "upstreamPortNumber" : 7,
+      "vendorID" : 1452,
+      "vendorName" : "Apple Inc."
+    }
+  ],
+  "version" : "<version>"
+}

@@ -1,0 +1,134 @@
+{
+  "adapter" : {
+    "source" : "AC",
+    "watts" : 67
+  },
+  "isDesktopMac" : false,
+  "ports" : [
+    {
+      "billboardDevicePresent" : false,
+      "bulletGroups" : [
+        {
+          "header" : "What the cable's e-marker reports",
+          "lines" : [
+            "Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+            "Cable rated to 50V \/ 5 A, delivers up to 240W (USB-PD caps at 48V)",
+            "Passive (no signal-conditioning electronics)"
+          ],
+          "source" : "emarker"
+        },
+        {
+          "header" : "What your Mac measured",
+          "lines" : [
+            "Currently negotiated: 20V @ 5A (60W)"
+          ],
+          "source" : "measured"
+        },
+        {
+          "header" : "What WhatCable knows",
+          "lines" : [
+            "Made by Apple (0x05AC), per our bundled vendor list"
+          ],
+          "source" : "database"
+        },
+        {
+          "header" : "What the charger reports",
+          "lines" : [
+            "Charger advertises up to 60W"
+          ],
+          "source" : "charger"
+        }
+      ],
+      "bullets" : [
+        "Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+        "Cable rated to 50V \/ 5 A, delivers up to 240W (USB-PD caps at 48V)",
+        "Passive (no signal-conditioning electronics)",
+        "Currently negotiated: 20V @ 5A (60W)",
+        "Made by Apple (0x05AC), per our bundled vendor list",
+        "Charger advertises up to 60W"
+      ],
+      "cable" : {
+        "activeLayoutContradiction" : false,
+        "currentRating" : "5 A",
+        "endpoint" : "SOP''",
+        "maxVolts" : 50,
+        "maxWatts" : 240,
+        "plugType" : "Type-C",
+        "speed" : "USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)",
+        "type" : "passive",
+        "typeSource" : "emarker",
+        "vendorID" : 1452,
+        "vendorName" : "Apple"
+      },
+      "charging" : {
+        "bottleneck" : "fine",
+        "detail" : "Charger and cable are well-matched. The Mac draws what it needs moment to moment, up to this limit.",
+        "isWarning" : false,
+        "summary" : "Charging well · up to 60W"
+      },
+      "className" : "AppleHPMInterfaceType10",
+      "connectionActive" : true,
+      "device" : {
+        "pdRevision" : "PD 3.0",
+        "productID" : 1,
+        "vendorID" : 1452,
+        "vendorName" : "Apple"
+      },
+      "displays" : [
+        {
+          "bottleneck" : "unknownMode",
+          "cableAssessment" : "unlikelyTheCable",
+          "detail" : "A display is connected but its capabilities aren't readable, so there's nothing to compare the link against.",
+          "isAppleDisplay" : false,
+          "isWarning" : false,
+          "lanes" : 4,
+          "maxLanes" : 4,
+          "summary" : "Display connected"
+        }
+      ],
+      "headline" : "Charging · 60W charger",
+      "name" : "Port-USB-C@1",
+      "pdCapable" : false,
+      "powerSources" : [
+        {
+          "maxPowerW" : 60,
+          "name" : "USB-PD",
+          "negotiated" : {
+            "currentA" : 5,
+            "powerW" : 60,
+            "voltageV" : 20
+          },
+          "options" : [
+            {
+              "currentA" : 5,
+              "powerW" : 60,
+              "voltageV" : 20
+            }
+          ]
+        }
+      ],
+      "status" : "charging",
+      "subtitle" : "Power is flowing. No data connection.",
+      "transports" : {
+        "active" : [
+
+        ],
+        "provisioned" : [
+
+        ],
+        "supported" : [
+
+        ]
+      },
+      "trust" : {
+        "contradiction" : false,
+        "tier" : "amber"
+      },
+      "type" : "USB-C"
+    }
+  ],
+  "thunderboltSwitches" : [
+
+  ],
+  "version" : "<version>"
+}

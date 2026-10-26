@@ -1,0 +1,123 @@
+# Certification IDs to always resolve.
+#
+# The build works out which USB-IF certification IDs to look up from three
+# places: the USB-IF bulk catalogue, the cert IDs on our own cable rows, and
+# the probe corpus. None of those is complete. The bulk feed in particular
+# carries whole vendors one month and not the next, and the per-XID endpoint
+# still answers for IDs the feed has stopped listing.
+#
+# Without this file those listings vanish from whatcable.db on the next clean
+# rebuild, silently, because the build simply never asks about them. That
+# happened on 2026-09-22: 87 IDs, 92 listings, every one still live at USB-IF.
+#
+# Format, three tab-separated fields, all three required:
+#   1. certification ID (hex, 0x prefix optional)
+#   2. certification date, as "2019-01-25T00:00:00", or empty
+#   3. a note for humans; not used by the build
+#
+# The date is here because the per-XID endpoint does not return one. The date
+# only ever came from a bulk-catalogue row, and these IDs are exactly the ones
+# the bulk feed has stopped listing, so without it the recovered listings come
+# back dateless. The build uses it only when the bulk feed offers nothing for
+# that ID: a date the catalogue does supply always wins.
+#
+# An empty date field is valid and means USB-IF publishes no date for that ID.
+# Five of the entries below are like that. Leave them empty; never invent one.
+#
+# A line with any other number of fields is skipped with a warning.
+#
+# Same idea as data/manual-vendors.tsv: a tracked input for what the
+# automated sources miss, so a clean rebuild stays reproducible.
+0x17AE	2019-01-25T00:00:00	ON Semiconductor: FUSB380
+0x17BC	2019-08-26T00:00:00	ON Semiconductor: FUSB380C
+0x17BD	2022-09-01T00:00:00	ON Semiconductor: FUSB15201DV
+0x17C0	2023-06-01T00:00:00	ON Semiconductor: FUSB15101
+0x17D0	2024-02-08T00:00:00	ON Semiconductor: FUSB15200
+0x1C46	2017-11-28T00:00:00	StarTech.com Ltd.: USB31CC1M
+0x1C47	2017-11-28T00:00:00	StarTech.com Ltd.: USB31C5C1M
+0x1C48	2018-03-09T00:00:00	StarTech.com Ltd.: USB2C5C2M
+0x1C49	2018-03-09T00:00:00	StarTech.com Ltd.: USB2C5C50CM
+0x1C4A	2018-03-09T00:00:00	StarTech.com Ltd.: PN:USB2C5C1M
+0x1C4B	2018-03-09T00:00:00	StarTech.com Ltd.: USB2C5C3M
+0x1C4C	2018-03-09T00:00:00	StarTech.com Ltd.: USB2C5C2MW
+0x1C4D	2018-03-15T00:00:00	StarTech.com Ltd.: USB315C5C6
+0x1C4E	2018-06-13T00:00:00	StarTech.com Ltd.: USB2C5C4MW
+0x1C4F	2019-12-09T00:00:00	StarTech.com Ltd.: DCH1C3A
+0x1C50	2019-12-10T00:00:00	StarTech.com Ltd.: WCH1C602
+0x1C51	2022-06-27T00:00:00	StarTech.com Ltd.: CC1M-40G-USB-CABLE
+0x1C52	2024-02-08T00:00:00	StarTech.com Ltd.: 1M-40G-USB4-CABLE
+0x1C53		StarTech.com Ltd.: 50C-40G-USB4-CABLE, USB2EPR1M
+0x1C54	2023-10-17T00:00:00	StarTech.com Ltd.: USB2EPR2M
+0x1C55	2023-12-21T00:00:00	StarTech.com Ltd.: USB2EPR3M
+0x1C56	2023-12-21T00:00:00	StarTech.com Ltd.: USB2EPR4M
+0x1C57	2023-12-15T00:00:00	StarTech.com Ltd.: USB2EPR3F
+0x1C58	2023-12-15T00:00:00	StarTech.com Ltd.: USB2EPR6F
+0x284A	2020-11-30T00:00:00	JPC-MAIN SUPER Inc.: UC-E25
+0x2A89		ON Semiconductor: 35468851, FUSB15201
+0x33F1	2025-11-11T00:00:00	StarTech.com Ltd.: CC3M20GUSB4CX
+0x33F2	2025-12-16T00:00:00	StarTech.com Ltd.: CC3M20GUSB4CXW
+0x33F3	2025-12-15T00:00:00	StarTech.com Ltd.: CC10FT20GUSB4CX
+0x33F4	2026-01-20T00:00:00	StarTech.com Ltd.: CC10FT20GUSB4CXW
+0x33F5	2025-11-11T00:00:00	StarTech.com Ltd.: S2CEPR3FW-USB-CABLE
+0x33F6	2023-12-21T00:00:00	StarTech.com Ltd.: USB2EPR10F
+0x33F7	2023-12-21T00:00:00	StarTech.com Ltd.: USB2EPR13F
+0x33F8	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR3FW
+0x33F9	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR1MW
+0x33FA	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR6FW
+0x33FB	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR2MW
+0x33FC	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR10FW
+0x33FD	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR3MW
+0x33FE	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR13FW
+0x33FF	2024-03-25T00:00:00	StarTech.com Ltd.: USB2EPR4MW
+0x3400		StarTech.com Ltd.: 1014GCN-WALL-CHARGER
+0x3403	2024-11-22T00:00:00	StarTech.com Ltd.: S2CEPR2M-USBSL-CABLE
+0x3404	2024-11-22T00:00:00	StarTech.com Ltd.: S2CEPR3M-USBSL-CABLE
+0x3405	2025-02-25T00:00:00	StarTech.com Ltd.: S2CEPR3F-USB-CABLE
+0x3406	2025-02-25T00:00:00	StarTech.com Ltd.: S2CEPR6F-USB-CABLE
+0x3407	2025-01-09T00:00:00	StarTech.com Ltd.: S2CEPR10F-USB-CABLE
+0x3408	2025-02-25T00:00:00	StarTech.com Ltd.: S2CEPR1M-USB-CABLE
+0x3409	2025-01-08T00:00:00	StarTech.com Ltd.: S2CEPR2M-USB-CABLE
+0x340A	2025-02-25T00:00:00	StarTech.com Ltd.: S2CEPR3M-USB-CABLE
+0x340B	2025-06-04T00:00:00	StarTech.com Ltd.: USB315C5C6
+0x340C	2026-01-15T00:00:00	StarTech.com Ltd.: USB315CCV2M
+0x340D	2025-07-17T00:00:00	StarTech.com Ltd.: USB31CCV1M
+0x340E	2025-10-08T00:00:00	StarTech.com Ltd.: USB31CCV50CM
+0x340F	2025-10-23T00:00:00	StarTech.com Ltd.: CC18IN80GUSB4CABLE
+0x3410	2025-11-21T00:00:00	StarTech.com Ltd.: CC18IN80GUSB4CABLEW
+0x3411	2025-10-22T00:00:00	StarTech.com Ltd.: CC50CM80GUSB4CABLE
+0x3412	2025-11-21T00:00:00	StarTech.com Ltd.: CC50CM80GUSB4CABLEW
+0x3413	2025-10-22T00:00:00	StarTech.com Ltd.: CC3FT80GUSB4CABLE
+0x3414	2025-11-21T00:00:00	StarTech.com Ltd.: CC3FT80GUSB4CABLEW
+0x3415	2025-11-20T00:00:00	StarTech.com Ltd.: CC1M80GUSB4CABLE
+0x3416	2025-12-16T00:00:00	StarTech.com Ltd.: CC1M80GUSB4CABLEW
+0x3417	2026-01-02T00:00:00	StarTech.com Ltd.: CC150CM80GUSB4CABLE
+0x3418	2026-01-29T00:00:00	StarTech.com Ltd.: CC150CM80GUSB4CABLEW
+0x3419		StarTech.com Ltd.: CC5FT80GUSB4CABLE, CC5FT80GUSB4CABLEW
+0x341B	2025-11-11T00:00:00	StarTech.com Ltd.: CC6FT20GUSB4TP
+0x341C	2026-01-07T00:00:00	StarTech.com Ltd.: CC2M20GUSB4TP
+0x341D	2025-12-16T00:00:00	StarTech.com Ltd.: CC6FT20GUSB4TPW
+0x341E	2026-01-29T00:00:00	StarTech.com Ltd.: CC2M20GUSB4TPW
+0x341F	2026-04-15T00:00:00	StarTech.com Ltd.: CC50CM40GUSB4TP
+0x3420	2025-12-15T00:00:00	StarTech.com Ltd.: CC1M40GUSB4TP
+0x3421	2026-04-15T00:00:00	StarTech.com Ltd.: CC50CM40GUSB4TPW
+0x3422		StarTech.com Ltd.: CC1M40GUSB4TPW
+0x3616	2025-07-22T00:00:00	Dongguan Arin Electronics Technology Co., Ltd.: US40-1.2NA11
+0x400E	2025-02-25T00:00:00	The NOCO Company: XC1B
+0x400F	2025-02-25T00:00:00	The NOCO Company: XC1W
+0x4011	2025-01-07T00:00:00	The NOCO Company: XC2W, XC2B
+0x4013	2024-12-27T00:00:00	The NOCO Company: XC3W, XC3B
+0x421D	2025-11-11T00:00:00	StarTech.com Ltd.: S2CEPR6FW-USB-CABLE
+0x421E	2025-11-11T00:00:00	StarTech.com Ltd.: S2CEPR10FW-USB-CABLE
+0x421F	2025-11-11T00:00:00	StarTech.com Ltd.: S2CEPR1MW-USB-CABLE
+0x4220	2025-11-11T00:00:00	StarTech.com Ltd.: S2CEPR2MW-USB-CABLE
+0x4221	2025-11-11T00:00:00	StarTech.com Ltd.: S2CEPR3MW-USB-CABLE
+0x4222	2026-04-15T00:00:00	StarTech.com Ltd.: CC18IN40GUSB4TP
+0x4223	2026-04-15T00:00:00	StarTech.com Ltd.: CC3FT40GUSB4TP
+0x4224	2026-04-15T00:00:00	StarTech.com Ltd.: CC18IN40GUSB4TPW
+0x4225	2026-04-15T00:00:00	StarTech.com Ltd.: CC3FT40GUSB4TPW
+0x4226	2025-12-09T00:00:00	StarTech.com Ltd.: USB31CCTLKV1M
+0x4227	2026-04-08T00:00:00	StarTech.com Ltd.: USB31CCTLKV50CM
+0x4228	2025-12-09T00:00:00	StarTech.com Ltd.: USB31CCSLKV1M
+0x4229	2026-04-08T00:00:00	StarTech.com Ltd.: USB31CCSLKV50CM
+0x422B	2026-05-01T00:00:00	StarTech.com Ltd.: CC3M20GUSB4AZ
+0x46E2	2026-08-13T00:00:00	StarTech.com Ltd.: S2CEPR3MW-USBSL-CABL

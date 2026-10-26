@@ -1,0 +1,666 @@
+"0.2-0.5 mW" = "0.2-0.5 mW";
+"0.5-1 mW" = "0.5-1 mW";
+"1-5 mW" = "1-5 mW";
+"3 A" = "3 A";
+"5 A" = "5 A";
+"5-10 mW" = "5-10 mW";
+"50-200 µW" = "50-200 µW";
+"< 50 µW" = "< 50 µW";
+"> 10 mW" = "> 10 mW";
+"Active %@ cable, %@" = "有源%1$@线缆，%2$@";
+"Active cable" = "有源线缆";
+"Active cable (contains signal-conditioning electronics)" = "有源线缆（包含信号调理电子组件）";
+"Active cable (VDO 2):" = "有源线缆（VDO 2）：";
+"Alternate Mode Adapter" = "替代模式适配器";
+"Both the charger and cable can do more, but the Mac is currently asking for less. This is normal once the battery is mostly full, or when the system is idle." = "充电器和线缆都能提供更高功率，但 Mac 当前请求的功率较低。电池接近充满或系统空闲时这很正常。";
+"Cable does not advertise an e-marker (basic cable)" = "线缆未声明 e-marker（基础线缆）";
+"Cable is limiting charging speed" = "线缆限制了充电速度";
+"Cable identified as %@" = "线缆识别为%@";
+"This e-marker is used in: %@" = "此 e-marker 用于：%@";
+"Cable rated for %@ at up to %lldV (~%lldW)" = "线缆额定 %1$@，最高 %2$lldV（约 %3$lldW）";
+"Cable rated to %lldV / %@, delivers up to %lldW (USB-PD caps at 48V)" = "线缆额定为 %1$lldV / %2$@，最高传输 %3$lldW（USB-PD 上限为 48V）";
+"Cable speed: %@" = "线缆速度：%@";
+"Cable trust signals:" = "线缆可信度信号：";
+"Carrying DisplayPort video" = "正在传输 DisplayPort 视频";
+"Carrying both data and DisplayPort video." = "正在同时传输数据和 DisplayPort 视频。";
+"Charger advertises up to %lldW" = "充电器声明最高 %lldW";
+"Charger: %@" = "充电器：%@";
+"Charger: %@ %@" = "充电器：%1$@ %2$@";
+"Charger identified as %@" = "充电器识别为 %@";
+"Charger and cable are well-matched. The Mac draws what it needs moment to moment, up to this limit." = "充电器和线缆匹配良好。Mac 会根据实时需求取用电力，最高不超过此上限。";
+"Charger can deliver up to %lldW, but this cable is only rated to carry %lldW. Replace the cable to charge faster." = "充电器最高可提供 %1$lldW，但这条线缆额定只能承载 %2$lldW。更换线缆可以更快充电。";
+"Charging" = "正在充电";
+"Charging at %lldW (charger can do up to %lldW)" = "正在以 %1$lldW 充电（充电器最高可达 %2$lldW）";
+"Charging only" = "仅充电";
+"Charging well · up to %lldW" = "正常充电 · 最高 %lldW";
+"Charging · %lldW charger" = "正在充电 · %lldW 充电器";
+"System reports charger at %lldW" = "系统报告充电器为 %lldW";
+"Charging: " = "充电：";
+"Connected devices:" = "已连接设备：";
+"Connected" = "已连接";
+"Connected device: %@, %@" = "已连接设备：%1$@，%2$@";
+"Connected to %@" = "已连接到 %@";
+"Connected via %lld hops: %@" = "通过 %1$lld 跳连接：%2$@";
+"Connected." = "已连接。";
+"Copper" = "铜缆";
+"Couldn't determine cable type from this port." = "无法从此端口判断线缆类型。";
+"Currently negotiated: %@ @ %@ (%@)" = "当前协商：%1$@ @ %2$@（%3$@）";
+"Display connected" = "已连接显示器";
+"Display connected · %lldW charger" = "已连接显示器 · %lldW 充电器";
+"Display connected, data blocked" = "已连接显示器，数据已阻止";
+"Display connected, data blocked · %lldW charger" = "已连接显示器，数据已阻止 · %lldW 充电器";
+"DisplayPort video over USB-C Alt Mode." = "通过 USB-C Alt Mode 传输 DisplayPort 视频。";
+"E-marker claims EPR support but reports only 20V max VBUS" = "E-marker 声称支持 EPR，但报告的最大 VBUS 只有 20V";
+"E-marker reports no vendor identity" = "E-marker 未报告厂商身份";
+"E-marker uses a reserved cable-latency value" = "E-marker 使用了保留的线缆延迟值";
+"E-marker uses a reserved current-rating value" = "E-marker 使用了保留的电流额定值";
+"E-marker uses a reserved data-speed value" = "E-marker 使用了保留的数据速度值";
+"E-marker uses an invalid VDO version" = "E-marker 使用了无效的 VDO 版本";
+"E-marker uses an invalid cable-termination value" = "E-marker 使用了无效的线缆端接值";
+"Last leg drops from %@ to %@" = "最后一段从 %1$@ 降到 %2$@";
+"This cable's e-marker doesn't report a vendor ID, which is common on genuine cables. It's only worth a closer look if the cable's other capability data is also inconsistent." = "这条线缆的 e-marker 未报告厂商 ID，这在正品线缆上很常见。只有当线缆的其他能力数据也不一致时，才值得进一步检查。";
+"Linked at %@" = "链路速度 %@";
+"Negotiation hasn't completed yet." = "协商尚未完成。";
+"Charger on standby" = "充电器待机中";
+"Another charger is powering the Mac right now. macOS draws from one charger at a time, so this charger stays on standby until the other is unplugged." = "目前由另一个充电器为 Mac 供电。macOS 一次只从一个充电器取电，因此在拔掉另一个之前，此充电器将保持待机。";
+"No USB-C / MagSafe ports were found on this Mac." = "未找到 USB-C / MagSafe 端口。";
+"Nothing connected" = "未连接任何设备";
+"Only USB 2.0 is active. If you expected high speed, the cable may not support it." = "当前仅 USB 2.0 活跃。如果你预期高速连接，线缆可能不支持。";
+"Optical" = "光纤";
+"Optical cable" = "光纤线缆";
+"Optical cable, not electrically isolated (carries copper alongside the fibres)" = "光纤线缆，但未电气隔离（光纤旁仍带有铜线）";
+"Optical fibres are electrically isolated end-to-end" = "光纤端到端电气隔离";
+"Other" = "其他";
+"Passive cable" = "无源线缆";
+"Plug a cable into %@ to see what it can do." = "将线缆接入 %@，即可查看它能做什么。";
+"Power is flowing but no data link is established." = "正在供电，但未建立数据链路。";
+"Power is flowing. No data connection." = "正在供电。无数据连接。";
+"Raw IOKit properties:" = "原始 IOKit 属性：";
+"Re-driver" = "Re-driver";
+"Re-timer" = "Re-timer";
+"Reserved" = "保留";
+"Slow USB device or charge-only cable" = "慢速 USB 设备或仅充电线缆";
+"Slow USB device or charge-only cable · %lldW charger" = "慢速 USB 设备或仅充电线缆 · %lldW 充电器";
+"SuperSpeed USB (5 Gbps or faster)" = "SuperSpeed USB（5 Gbps 或更快）";
+"SuperSpeed data link is active." = "SuperSpeed 数据链路已活跃。";
+"Supports %@." = "支持 %@。";
+"The cable's e-marker advertises EPR Capable, but reports its Max VBUS Voltage as 20V. EPR operation needs 48V or 50V VBUS, so the two fields contradict each other." = "线缆的 e-marker 声明支持 EPR，但 Max VBUS Voltage 报告为 20V。EPR 运行需要 48V 或 50V VBUS，因此这两个字段相互矛盾。";
+"The cable's e-marker reports VDO version %lld, which is reserved or marked Invalid by the USB-PD spec for this cable type. Real e-marker silicon should not emit Invalid version values." = "线缆的 e-marker 报告 VDO 版本 %lld；对于此线缆类型，USB-PD 规范将该值保留或标为无效。真实的 e-marker 芯片不应发出无效版本值。";
+"The cable's e-marker reports cable termination %lld, which the USB-PD spec marks as Invalid for this cable type. Mis-flashed e-markers commonly disagree with the cable's actual physical wiring here." = "线缆的 e-marker 报告线缆端接 %lld；USB-PD 规范将其标为此线缆类型的无效值。刷写错误的 e-marker 常会在这里与线缆实际物理接线不一致。";
+"The cable's e-marker reports cable-latency value %lld, which is reserved by the USB-PD spec for this cable type. Real e-marker chips should not emit reserved values." = "线缆的 e-marker 报告线缆延迟值 %lld；对于此线缆类型，该值由 USB-PD 规范保留。真实的 e-marker 芯片不应发出保留值。";
+"The cable's e-marker reports current value %lld, which is reserved by the USB-PD spec. Real e-marker chips should not emit reserved values." = "线缆的 e-marker 报告电流值 %lld；该值由 USB-PD 规范保留。真实的 e-marker 芯片不应发出保留值。";
+"The cable's e-marker reports speed value %lld, which is reserved by the USB-PD spec. Real e-marker chips should not emit reserved values." = "线缆的 e-marker 报告速度值 %lld；该值由 USB-PD 规范保留。真实的 e-marker 芯片不应发出保留值。";
+"The cable's e-marker reports vendor %@, which isn't in our bundled USB-IF list. The number could be unassigned, copied, or assigned after the bundled list was generated. On its own this isn't proof of a problem, but on a clone cable it often appears alongside other inconsistencies." = "线缆的 e-marker 报告厂商 %@，但它不在内置 USB-IF 列表中。这个编号可能尚未分配、被复制，或是在内置列表生成后才分配。单独看这并不能证明有问题，但在克隆线缆上常与其他不一致同时出现。";
+"Thunderbolt / USB4" = "Thunderbolt / USB4";
+"Thunderbolt / USB4 link active" = "Thunderbolt / USB4 链路活跃";
+"Thunderbolt / USB4 · %lldW charger" = "Thunderbolt / USB4 · %lldW 充电器";
+"USB 2.0 (480 Mbps)" = "USB 2.0（480 Mbps）";
+"USB 2.0 only (480 Mbps), no high-speed data" = "仅 USB 2.0（480 Mbps），无高速数据";
+"USB 3.2 Gen 1 (5 Gbps)" = "USB 3.2 Gen 1（5 Gbps）";
+"USB 3.2 Gen 2 (10 Gbps)" = "USB 3.2 Gen 2（10 Gbps）";
+"USB Hub" = "USB 集线器";
+"USB Peripheral" = "USB 外设";
+"USB default" = "USB 默认";
+"USB device" = "USB 设备";
+"USB device · %lldW charger" = "USB 设备 · %lldW 充电器";
+"USB-C with video" = "带视频的 USB-C";
+"USB-C with video · %lldW charger" = "带视频的 USB-C · %lldW 充电器";
+"USB4 Gen 3 (20 / 40 Gbps)" = "USB4 Gen 3（20 / 40 Gbps）";
+"USB4 Gen 4 (80 Gbps)" = "USB4 Gen 4（80 Gbps）";
+"Unknown device" = "未知设备";
+"Unknown generation (raw speed code 0x%@)" = "未知代际（原始速度代码 0x%@）";
+"Unknown generation (raw speed code 0x2, inferred TB5)" = "未知代际（原始速度代码 0x2，推断为 TB5）";
+"Unspecified" = "未指定";
+"Up to %lld Gb/s %@" = "最高 %lld Gb/s %@";
+"Up to %lld Gb/s out, %lld Gb/s in" = "最高 %1$lld Gb/s 输出，%2$lld Gb/s 输入";
+"VCONN-powered device" = "VCONN 供电设备";
+"Vendor ID isn't in USB-IF's published list" = "Vendor ID 不在 USB-IF 已发布列表中";
+"What can this USB-C cable actually do?" = "这条 USB-C 线缆到底能做什么？";
+" · %lldW cable" = " · %lldW 线缆";
+"high-speed data" = "高速数据";
+"smart cable" = "带 e-marker 的线缆";
+"video" = "视频";
+
+/* DisplayPort lane labels, connected-device variants, pin-diagram Data label */
+"2 DP lanes + USB3 data" = "2 条 DP 通道 + USB3 数据";
+"4 DP lanes (no USB3 alongside video)" = "4 条 DP 通道（视频旁无 USB3）";
+"Carrying DisplayPort video (%@)" = "正在传输 DisplayPort 视频 (%@)";
+"Connected device: %@" = "已连接设备：%@";
+"Connected device: another Mac" = "已连接设备：另一台 Mac";
+"USB link only" = "仅 USB 链接";
+"Other USB devices on this port" = "此端口上的其他 USB 设备";
+"Connected device: %@, %@ (%@)" = "已连接设备：%1$@，%2$@ (%3$@)";
+"Data" = "数据";
+"DisplayPort Alt Mode" = "DisplayPort 替代模式";
+
+/* Cable speed / charger status strings (previously missing keys) */
+"20 Gbps capable" = "支持 20 Gbps";
+"40 Gbps capable" = "支持 40 Gbps";
+"80 Gbps capable" = "支持 80 Gbps";
+"Charger connected. Battery is full, so the Mac isn't drawing power." = "充电器已连接。电池已充满，因此 Mac 未在取电。";
+"Per-port negotiation data is not available. Wattage is from the system-wide adapter reading." = "无法获取每端口的协商数据。功率来自系统级的适配器读数。";
+"Plugged in · battery full" = "已接通 · 电池已充满";
+"Try a higher-wattage charger to identify the cable." = "尝试使用更高功率的充电器来识别线缆。";
+"No data link or charger detected on this port." = "在此端口上未检测到数据连接或充电器。";
+"USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)" = "USB4 Gen 3（40 Gbps，Thunderbolt 4 级）";
+"USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)" = "USB4 Gen 4（80 Gbps，Thunderbolt 5 级）";
+
+
+/* Pro plugin UI strings */
+"%@ (spec, not measured)" = "%@（规格值，非实测）";
+"%@ Diagnostics" = "%@ 诊断";
+"%lld (%lld failed)" = "%1$lld（%2$lld 个失败）";
+"%lld of %lld devices used" = "已使用 %lld/%lld 台设备";
+"A cable was physically connected or disconnected from the port." = "有线缆从端口上物理连接或断开。";
+"Activate" = "激活";
+"Active Cable" = "有源线缆";
+"Active RDO" = "活跃 RDO";
+"Attach count" = "连接次数";
+"Buy a licence at whatcable.uk" = "在 whatcable.uk 购买许可证";
+"CC Advertisement" = "CC 广播";
+"CC line voltage" = "CC 线电压";
+"Cable Identity" = "线缆身份";
+"Cancel" = "取消";
+"Capability mismatch" = "能力不匹配";
+"Connect a USB-C power source to view live telemetry." = "连接 USB-C 电源以查看实时遥测数据。";
+"Connector" = "连接器";
+"Current" = "电流";
+"Current (A)" = "电流 (A)";
+"Data role swaps" = "数据角色交换";
+"Deactivate" = "停用";
+"Deactivate Licence" = "停用许可证";
+"Deactivate WhatCable Pro?" = "停用 WhatCable Pro？";
+"Default USB (500/900 mA)" = "USB 默认（500/900 mA）";
+"Detach count" = "断开次数";
+"Device Identity" = "设备身份";
+"Devices" = "设备";
+"Diagnostics" = "诊断";
+"Disabled" = "已禁用";
+"Discover Identity response received on SOP channel. Carries the connected partner's VID, PID, and capability VDOs (not the cable; cable identity uses SOP')." = "在 SOP 通道上收到 Discover Identity 响应。包含已连接伙伴的 VID、PID 和能力 VDO（不是线缆；线缆身份使用 SOP'）。";
+"Display Output" = "视频输出";
+"Enabled" = "已启用";
+"Enter your licence key to unlock pro features." = "输入许可证密钥以解锁 Pro 功能。";
+"Measuring while your Mac charges…" = "正在测量,Mac 充电中……";
+"Waiting for charging load to vary. Use your Mac normally to finish the reading." = "等待充电负载变化。请正常使用 Mac 以完成测量。";
+"Event Log" = "事件日志";
+"FET enable failures" = "FET 启用失败次数";
+"FET status" = "FET 状态";
+"Hard reset count" = "硬复位次数";
+"Could not load the device list. Try again later." = "无法加载设备列表，请稍后重试。";
+"Could not reach the licence server. Check your internet connection and try again." = "无法连接到许可证服务器。请检查网络连接后重试。";
+"I2C error count" = "I2C 错误次数";
+"Inactive" = "未活跃";
+"Invalid licence key. Check the key and try again." = "许可证密钥无效。请检查密钥后重试。";
+"Lanes" = "通道数";
+"Licence…" = "许可证……";
+"Licensed to: %@" = "许可证持有者：%@";
+"Link rate" = "链路速率";
+"Liquid Detection" = "液体检测";
+"Liquid detected" = "检测到液体";
+"Live" = "实时";
+"Loading devices…" = "正在加载设备…";
+"MagSafe 3" = "MagSafe 3";
+"MagSafe Charger" = "MagSafe 充电器";
+"Manufacturer" = "制造商";
+"Requested max operating current" = "请求最大工作电流";
+"Requested max operating power" = "请求最大工作功率";
+"Max power" = "最大功率";
+"Mitigations" = "缓解措施";
+"Mode" = "模式";
+"Monitor" = "监视器";
+"Native" = "原生";
+"Port maximum. Live per-port metering is not available on this hardware." = "端口上限。此硬件不支持每端口的实时计量。";
+"No" = "否";
+"No PD contract data" = "无 PD 合同数据";
+"No PD events" = "无 PD 事件";
+"No PDOs advertised" = "未声明 PDO";
+"No Power Data" = "无电源数据";
+"No SOP identity data" = "无 SOP 身份数据";
+"No cable connected." = "未连接线缆。";
+"No cable identity data" = "无线缆身份数据";
+"No devices registered." = "没有已注册的设备。";
+"No health counters" = "无健康计数器";
+"No liquid detection data" = "无液体检测数据";
+"None" = "无";
+"Open Pro diagnostics for this port" = "打开此端口的 Pro 诊断";
+"Requested operating current" = "请求工作电流";
+"Requested operating power" = "请求工作功率";
+"Requested output voltage" = "请求输出电压";
+"PD spec revision" = "PD 规范修订版";
+"PD state" = "PD 状态";
+"PDO position" = "PDO 位置";
+"Partner device identity arrived via SOP (the connected device, not the cable)." = "伙伴设备身份通过 SOP 到达（已连接的设备，不是线缆）。";
+"Passive Cable" = "无源线缆";
+"Pin Diagram" = "引脚图";
+"Plug: %@" = "连接器：%@";
+"Port Health" = "端口健康状况";
+"Power" = "功率";
+"Power (W)" = "功率 (W)";
+"Power Contract" = "供电合同";
+"Power Monitor" = "电源监视器";
+"Power role swaps" = "电源角色交换";
+"Pro features unlocked." = "Pro 功能已解锁。";
+"Pro features will be locked until you enter your key again." = "在你再次输入密钥之前，Pro 功能将保持锁定。";
+"Pro required" = "需要 Pro";
+"Product ID" = "产品 ID";
+"Product Type" = "产品类型";
+"Raw VDOs" = "原始 VDO";
+"Raw cable VDOs" = "原始线缆 VDO";
+"Refresh" = "刷新";
+"Registered %@" = "注册于 %@";
+"Registration date unknown" = "注册日期未知";
+"Remove" = "移除";
+"Remove %@ from your licence?" = "要将 %@ 从许可证中移除吗？";
+"Removing this Mac will lock Pro here until you activate again." = "移除此 Mac 后，Pro 将在此处锁定，直到你再次激活。";
+"Rp current level" = "Rp 电流等级";
+"Rp resistor" = "Rp 电阻";
+"Short detect count" = "短路检测次数";
+"Signal Routing" = "信号路由";
+"Source PDOs" = "源 PDO";
+"Source capabilities received" = "已收到源端能力";
+"State" = "状态";
+"System Power Input" = "系统电源输入";
+"That Mac will lose Pro until it activates again." = "该 Mac 将失去 Pro，直到再次激活。";
+"The charger or power source advertised what voltages and currents it can provide." = "充电器或电源声明了它能提供的电压和电流。";
+"This Mac's slot could not be released on the licence server, so it may still be held. Free it from Settings on another Mac, or contact support." = "无法在许可证服务器上释放此 Mac 的名额，可能仍被占用。请在另一台 Mac 的设置中释放，或联系支持团队。";
+"This Mac" = "此 Mac";
+"Tunneled" = "隧道传输";
+"UVDM discovery started. The controller is probing for vendor-specific capabilities on the cable or partner." = "UVDM 发现已开始。控制器正在探测线缆或伙伴上的厂商特定能力。";
+"UVDM enumeration" = "UVDM 枚举";
+"UVDM status update" = "UVDM 状态更新";
+"USB-C Charger" = "USB-C 充电器";
+"Unknown" = "未知";
+"Unknown Device" = "未知设备";
+"Unknown Mac" = "未知 Mac";
+"Unknown event %@" = "未知事件 %@";
+"Unregistered cable (no e-marker)" = "未注册线缆（无 e-marker）";
+"Unstructured VDM enumeration began (discovering vendor-specific capabilities)." = "非结构化 VDM 枚举已开始（正在发现厂商特定能力）。";
+"Unstructured VDM status changed (vendor-specific messaging like Alt Mode setup)." = "非结构化 VDM 状态已更改（厂商特定消息，如 Alt Mode 设置）。";
+"VDO fail count" = "VDO 失败次数";
+"Vendor ID" = "厂商 ID";
+"Vendor-specific unstructured VDM state changed. Used by Apple for custom Alt Mode setup and Thunderbolt negotiation." = "厂商特定的非结构化 VDM 状态已更改。Apple 用于自定义 Alt Mode 设置和 Thunderbolt 协商。";
+"Voltage" = "电压";
+"Voltage (V)" = "电压 (V)";
+"WhatCable Pro" = "WhatCable Pro";
+"Year of manufacture" = "制造年份";
+"Yes" = "是";
+"Charging resistance" = "充电电阻";
+"experimental" = "实验性";
+"Resistance of the whole charging path: cable, plugs and charger together. Lower is better. To judge a cable, compare cables on the same charger and port." = "整个充电路径的电阻:线缆、接口和充电器的总和。数值越低越好。要判断某根线缆,请在同一充电器和同一端口上比较不同线缆。";
+
+/* Pro plugin format strings */
+"%@ Port %lld" = "%1$@ 端口 %2$lld";
+"APDO, %@ to %@ @ %@, %@ max" = "APDO，%1$@ 至 %2$@ @ %3$@，最大 %4$@";
+"Battery, %@ minimum, %@" = "电池，最小 %1$@，%2$@";
+"Battery, %@ to %@, %@" = "电池，%1$@ 至 %2$@，%3$@";
+"EPR AVS, %@ to %@, %@" = "EPR AVS，%1$@ 至 %2$@，%3$@";
+"Fixed, %@ @ %@, %@" = "固定，%1$@ @ %2$@，%3$@";
+"Port" = "端口";
+"Rate %lld" = "速率 %lld";
+"Type %lld" = "类型 %lld";
+"Variable, %@ minimum @ %@, %@ minimum" = "可变，最小 %1$@ @ %2$@，最小 %3$@";
+"PPS, %@ to %@ @ %@, %@ max" = "PPS，%1$@ 至 %2$@ @ %3$@，最大 %4$@";
+"SPR AVS, %@ at 15V / %@ at 20V" = "SPR AVS，15V 时 %1$@ / 20V 时 %2$@";
+"Variable, %@ to %@ @ %@" = "可变，%1$@ 至 %2$@ @ %3$@";
+
+/* Pro plugin strings missing from prior export */
+"Enter Licence Key…" = "输入许可证密钥…";
+"This is the most the charger and your Mac agreed to, not a live reading. Your Mac reports the live figure only as a system total, shown in the System Power Input chart below." = "这是充电器与您的 Mac 协商的最大值，并非实时读数。您的 Mac 仅将实时数值作为系统总量报告，显示在下方的“系统电源输入”图表中。";
+"No power data for this port right now." = "此端口暂无电源数据。";
+"Waiting for power telemetry from macOS…" = "正在等待 macOS 电源数据…";
+"Upgrade to WhatCable Pro" = "升级到 WhatCable Pro";
+"not reported in this state" = "此状态下未报告";
+
+/* Widget strings */
+"Cable Status" = "线缆状态";
+"No cable data" = "无线缆数据";
+"Open WhatCable to start monitoring." = "打开 WhatCable 开始监测。";
+"See what your USB-C cables can do at a glance." = "一目了然地查看 USB-C 线缆的功能。";
+
+/* Negotiation diagnostics + Pro UX (PR #55). English; non-English to be refined by the community translation flow. */
+"The cable's e-marker and the Thunderbolt controller disagree on its speed. The controller measured a higher, confirmed rate, so that figure is used." = "线缆的 e-marker 与 Thunderbolt 控制器对其速度的识别不一致。控制器测得了更高的、已确认的速率，因此采用该数值。";
+"Running at %@" = "运行速度为 %@";
+"There's no cable e-marker or controller data, and no port or device capability to compare against, so we can't tell whether the cable is the limit." = "未检测到线缆 e-marker 或控制器数据，且无可比对的端口或设备能力，因此无法判断线缆是否为瓶颈。";
+"This cable has no e-marker and no controller data, so we can't tell whether it is the limit." = "此线缆无 e-marker 且无控制器数据，因此无法判断它是否限制了速度。";
+"Running slower than expected (%@)" = "运行速度低于预期（%@）";
+"The parts we can see all support %@ or more, but the link came up slower. Reseating the cable or trying another port may help." = "已知组件均支持 %@ 或更高速度，但链路建立速度较低。重新插拔线缆或尝试其他端口可能会有所帮助。";
+"Running at full data speed (%@)" = "以全速数据速率运行（%@）";
+"Nothing is being held back: the parts we can see all support this speed." = "没有受到任何限制：已知组件均支持此速度。";
+"Linked to another Mac at %@" = "以 %@ 链接到另一台 Mac";
+"Thunderbolt networking runs over this link. The 480 Mbps USB connection alongside it is normal and does not carry your data." = "Thunderbolt 网络通过此链接运行。旁边的 480 Mbps USB 连接是正常现象，不会传输您的数据。";
+"Cable is limiting data speed" = "线缆限制了数据传输速度";
+"The Mac and device can do %@, but the cable only carries %@. A faster cable would unlock full speed." = "Mac 和设备均可支持 %@，但线缆仅支持 %@。更换更快的线缆将能达到全速。";
+"The Mac can do %@, but the cable only carries %@. A faster cable would unlock full speed." = "Mac 可支持 %1$@，但线缆仅支持 %2$@。更换更快的线缆将能达到全速。";
+"The device can do %@, but the cable only carries %@. A faster cable would unlock full speed." = "设备可支持 %1$@，但线缆仅支持 %2$@。更换更快的线缆将能达到全速。";
+"This Mac port limits data speed" = "此 Mac 端口限制了数据传输速度";
+"The cable and device can do %@, but this port maxes out at %@." = "线缆和设备均可支持 %@，但此端口最高仅支持 %@。";
+"The cable can do %@, but this port maxes out at %@." = "线缆可支持 %1$@，但此端口最高仅支持 %2$@。";
+"The device can do %@, but this port maxes out at %@." = "设备可支持 %1$@，但此端口最高仅支持 %2$@。";
+"Device runs at %@" = "设备运行在 %@";
+"This is the fastest the connected device supports. It is not a cable problem." = "这是已连接设备支持的最快速度。这并非线缆问题。";
+"Battery full, not charging" = "电池已充满，未在充电";
+"Charger and cable are fine. The Mac will draw up to %lldW when it needs to." = "充电器和线缆均正常。Mac 会在需要时请求最高 %lldW 的功率。";
+"Negotiation Diagnostics" = "协商诊断";
+"What each link can do, and where the bottleneck is." = "查看每条链路的能力以及瓶颈所在。";
+"No Connections" = "未连接任何设备";
+"Plug a cable into a port to see what is limiting it." = "将线缆接入端口以查看限制速度的瓶颈。";
+"Nothing to diagnose on this port yet (no active power or data link)." = "此端口上尚无可诊断的内容（无活跃的电源或数据链路）。";
+"Data speed" = "数据速度";
+"Display links are not analysed yet." = "尚未分析显示器链路。";
+"Mac port" = "Mac 端口";
+"Cable" = "线缆";
+"Device" = "设备";
+"Negotiated" = "已协商";
+"Charger" = "充电器";
+"AC Power" = "交流电源";
+"bottleneck" = "瓶颈";
+"Cable signals disagree" = "线缆信号不一致";
+"an unknown speed" = "未知速度";
+"a higher speed" = "更高速度";
+"The cable's own e-marker reports %@, but the Thunderbolt controller measured it running at %@, faster than the e-marker claims. This can happen with active Thunderbolt cables whose e-marker under-reports (declaring themselves passive at a low speed). The controller's confirmed, higher reading is used above." = "线缆自身的 e-marker 报告为 %1$@，但 Thunderbolt 控制器测得其实际运行速率为 %2$@，比 e-marker 声称的更快。这种情况可能出现在某些主动式 Thunderbolt 线缆上，它们的 e-marker 低报了速度（把自己标示为低速的被动线缆）。上方采用的是控制器测得的更高、已确认的数值。";
+/* Pro overview screen + footer pill (Pro funnel). Parity placeholders in English; refine in the community translation flow. */
+"Cable Diagnostics" = "线缆诊断";
+"Deep per-port pin maps, plug orientation, and protocol detail." = "每个端口引脚的深度映射、插头方向及协议详情。";
+"Licence Key" = "许可证密钥";
+"Live MagSafe pin layout for charging and diagnostics." = "用于充电和诊断的实时 MagSafe 引脚布局。";
+"Live multi-port power graphs and event history." = "实时多端口功率图表与事件历史。";
+"MagSafe pin diagrams" = "MagSafe 引脚图";
+"Manage Licence…" = "管理许可证…";
+"See exactly what each link can do, and where the bottleneck is." = "准确了解每条链路的能力，并查明瓶颈所在。";
+"Find the weak link in a connection and keep the evidence: deep diagnostics, live power, cable history. One-off licence, no subscription." = "找出连接中的薄弱环节并保留证据：深度诊断、实时功率、线缆历史。一次性授权，无订阅。";
+"Cable says %@, link reads %@" = "线缆声明 %@，链路读取 %@";
+"The cable's e-marker reports %@, but the active link is reading %@. One of those readings is wrong, and without a Thunderbolt controller cross-check we can't tell which. Trying a known-good cable will identify the culprit." = "线缆的 e-marker 报告 %@，但活动链路读取为 %@。这两个读数中必有一个是错误的，在没有 Thunderbolt 控制器进行交叉比对的情况下无法判断是哪一个。尝试更换已知良好的线缆将可确定原因。";
+"Data blocked by macOS accessory security" = "数据已被 macOS 配件安全性阻止";
+"The link is capable of %@, but macOS is blocking data until you approve the accessory. Click Allow on the connection prompt, or check System Settings > Privacy & Security > Allow accessories to connect, then replug." = "链路能够达到 %@，但 macOS 正在阻止数据，直到您批准该配件。点按连接提示中的「允许」，或前往系统设置 > 隐私与安全性 > 允许配件连接，然后重新插拔。";
+
+/* Display dimension. English; non-English to be refined by the community translation flow. */
+"A display is connected but its capabilities aren't readable, so there's nothing to compare the link against." = "已连接显示器，但其能力无法读取，因此无可比对的链路参数。";
+"The link is carrying about %@ (%lld of %lld lanes)." = "链路当前传输约 %@（%lld/%lld 通道）。";
+"display" = "显示器";
+"Your %@ is connected, but the link rate isn't readable, so there's nothing to compare its capability against." = "您的 %@ 已连接，但链路速率无法读取，因此无可比对的能力参数。";
+"Display running at full quality" = "显示器运行在最高画质";
+"up to %lldHz" = "最高 %lldHz";
+"a higher mode than the link is carrying" = "高于链路当前承载的模式";
+"Video is going through a %@ adapter" = "视频正在通过 %@ 适配器传输";
+"Monitor can do more than the link is carrying" = "显示器支持高于当前链路所能承载的模式";
+"Display Diagnostics" = "显示诊断";
+"What your monitor can do, and what the link is carrying." = "查看显示器能力以及当前链路承载的内容。";
+"No Displays" = "未连接显示器";
+"Connect a monitor over USB-C or Thunderbolt to see what the link is delivering." = "通过 USB-C 或 Thunderbolt 连接显示器，以查看链路当前传输的数据。";
+"%@ port %lld" = "%1$@ 端口 %2$lld";
+"Display" = "显示器";
+"Display: %@" = "显示器：%@";
+"Display: %@ · video output %lld" = "显示器：%1$@ · 视频输出 %2$lld";
+"%lld × %lld" = "%lld × %lld";
+"native %lldHz" = "原生 %lldHz";
+"Link carries" = "链路承载";
+"Rate" = "速率";
+"See whether the link is carrying your monitor's full resolution and refresh." = "查看链路是否达到了显示器的最高分辨率和刷新率。";
+"Display links have their own screen: Display Diagnostics." = "显示器链路有独立的查看页面：显示诊断。";
+
+/* Billboard device (display dimension). English; community-refined. */
+"Billboard device present" = "存在 Billboard 设备";
+"A Billboard device is present on this port. That usually appears when an Alt Mode like DisplayPort was set up but didn't fully come up. Your display is below its best mode, so a re-plug, a different cable, or a different adapter may bring it up. Some docks show a Billboard device normally, so this isn't always a fault." = "此端口上存在 Billboard 设备。这通常表示类似 DisplayPort 的 Alt 模式在设置时未能完全启用。您的显示器可能未处于最佳显示模式，尝试重新插拔、更换线缆或适配器可能会解决此问题。另外，某些扩展坞会正常显示 Billboard 设备，因此这并不一定代表存在故障。";
+
+/* Display dimension: confirmed full quality via CoreGraphics live mode (issue #246 Option B). */
+"macOS reports your %@ at its top mode (%@), and the link is carrying it. Many high-resolution displays use compression (DSC) to fit a mode like this through the link, so the link rate alone can't show it; your display is at full quality." = "macOS 报告您的 %@ 正处于最高模式（%@），链路正在传输它。许多高分辨率显示器使用压缩（DSC）让这样的模式通过链路传输；仅凭链路速率无法显示这一点。您的显示器正以全质量运行。";
+
+/* Session monitor verdicts. */
+"Battery full, not drawing power" = "电池已充满，未在取电";
+"Performing as expected" = "表现符合预期";
+"No problems seen while watching this cable." = "监测这条线缆时未发现问题。";
+"Saw a brief drop or a single high reading. Not conclusive; still watching." = "观察到一次短暂下降或单次偏高读数。尚不能下结论，继续监测中。";
+"Not performing as expected" = "表现不符合预期";
+"Isn't performing as expected" = "表现不符合预期";
+
+/* Power Monitor system power source indicator. */
+"Battery" = "电池";
+"Source" = "电源";
+"Battery Power" = "电池功率";
+"Negotiating…" = "正在协商…";
+"Waiting for live reading…" = "正在等待实时读数…";
+
+/* Softened blank e-marker note */
+"E-marker vendor ID is blank, but the cable is identified at the connector" = "E-marker 的厂商 ID 为空，但线缆可在接口处被识别";
+"The cable's e-marker chip reports a blank vendor ID, but the connector identifies the cable as %@ (%@), a USB-IF-registered vendor. A blank e-marker VID by itself is common on genuine passive cables, so it isn't a sign of a problem." = "线缆的 E-marker 芯片报告的厂商 ID 为空，但接口将该线缆识别为 %1$@（%2$@），一个已在 USB-IF 注册的厂商。仅 E-marker VID 为空在正品无源线缆中很常见，因此这并非问题的迹象。";
+"Cable note:" = "线缆备注：";
+"Vendor is recognised but not in WhatCable's bundled USB-IF list" = "厂商可识别，但不在 WhatCable 内置的 USB-IF 列表中";
+"The vendor ID %@ (%@) is a recognised maker in the community USB vendor list, but not in the USB-IF list WhatCable bundles." = "厂商 ID %1$@（%2$@）在社区 USB 厂商列表中是可识别的厂商，但不在 WhatCable 内置的 USB-IF 列表中。";
+
+/* DFP product type labels */
+"Host" = "主机";
+"Power Brick" = "电源适配器";
+
+"Battery full" = "电池已充满";
+"Thunderbolt" = "Thunderbolt";
+
+"System draw" = "系统功耗";
+
+"On battery" = "使用电池";
+"Power connected" = "已接通电源";
+
+"Per-Port Metering Unavailable" = "无法使用每端口计量";
+"This Mac reports overall power below, but not per-port readings." = "此 Mac 在下方显示总功率，但不提供每端口的读数。";
+"Per-port metering isn't available on this Mac." = "此 Mac 不支持每端口计量。";
+"macOS can be slow to report per-port power, sometimes up to a minute." = "macOS 报告每个端口的功率可能较慢，有时最多需要一分钟。";
+"Display connected. No power is being sent out of this port. Incoming power shows in System Power Input below." = "已连接显示器。此端口未输出电力。输入的电力显示在下方的“系统电源输入”中。";
+"A charger is connected here, but your Mac is drawing power through %@. Incoming power shows in System Power Input below." = "此处连接了充电器，但你的 Mac 正在通过 %@ 获取电力。输入的电力显示在下方的“系统电源输入”中。";
+"Connected to %lld Thunderbolt devices: %@" = "已连接 %1$lld 个 Thunderbolt 设备：%2$@";
+"Thunderbolt fabric:" = "Thunderbolt 拓扑：";
+"Active tunnels:" = "活动隧道：";
+"Video" = "视频";
+"USB data" = "USB 数据";
+"PCIe data" = "PCIe 数据";
+"adapter %lld" = "适配器 %lld";
+
+/* Active-layout contradiction note - placeholder, see en.lproj */
+"E-marker reports passive, but carries active-cable structure (may be a mis-programmed e-marker)" = "E-marker 报告为无源，但包含有源线缆结构（可能是 e-marker 编程错误）";
+
+"Plugged in, charging on hold" = "已插入，充电已暂停";
+"Charger and cable are fine. macOS has paused charging for now, usually a battery charge limit or Optimized Battery Charging. The Mac still draws power from the charger." = "充电器和数据线正常。macOS 目前已暂停充电，通常是因为电池充电限制或优化电池充电功能已启用。Mac 仍在从充电器获取电力。";
+"Plugged in, charge limit reached" = "已插入，已达到充电上限";
+"Charger and cable are fine. The battery has reached the level macOS is charging it to, so charging has stopped. The Mac still draws power from the charger." = "充电器和数据线正常。电池已达到 macOS 设定的充电电量，因此已停止充电。Mac 仍在从充电器获取电力。";
+"Plugged in, running on battery" = "已插入，正在使用电池供电";
+"The charger is connected, but the Mac isn't drawing power from it right now, so it's running on its battery." = "充电器已连接，但 Mac 目前没有从充电器获取电力，因此正在使用电池供电。";
+"Plugged in · %lldW charger" = "已插入 · %lldW 充电器";
+"Plugged in" = "已插入";
+"Charging on hold (charge limit or Optimized Battery Charging)" = "充电已暂停（充电限制或优化电池充电）";
+"Connected over Thunderbolt" = "通过 Thunderbolt 连接";
+"Other USB devices" = "其他 USB 设备";
+"Reached through a Thunderbolt dock or display, so there's no cable, power, or Thunderbolt data for them." = "通过 Thunderbolt 扩展坞或显示器接入，因此没有它们的线缆、电源或 Thunderbolt 数据。";
+"Built-in USB ports" = "内置 USB 端口";
+"Built-in USB-A ports" = "内置 USB-A 端口";
+"Plain USB ports behind the Mac's internal hub, so there's no cable, power, or Thunderbolt data for them." = "连接到 Mac 内部集线器的普通 USB 端口，因此没有它们的线缆、电源或 Thunderbolt 数据。";
+"Move these devices to a Thunderbolt port to see more about them." = "将这些设备移到 Thunderbolt 端口，即可查看更多信息。";
+
+/* Cable history */
+"Add this cable" = "添加此线缆";
+"Track what this cable delivers over time" = "随时间跟踪此线缆的性能";
+"Track what this cable delivers over time (Pro)" = "随时间跟踪此线缆的性能 (Pro)";
+"Track what this cable delivers over time. WhatCable records its speed and any drops while it's plugged in, so you can spot a cable that misbehaves." = "随时间跟踪此线缆的性能。WhatCable 会记录连接时的速度和任何下降，帮助你找出有问题的线缆。";
+"Name" = "名称";
+"Note (optional)" = "备注（可选）";
+"Add" = "添加";
+"Save" = "保存";
+"e.g. Desk TB5 cable" = "例如：桌面 TB5 线缆";
+"e.g. left drawer" = "例如：左抽屉";
+"Tracking: %@" = "正在跟踪：%@";
+"%@: underperformed before" = "%@：之前性能不足";
+"This cable has dropped below its rating before. Open Saved Cables for the history." = "此线缆之前曾低于额定性能。打开「已保存线缆」查看历史记录。";
+"Tracking this as %@?" = "作为 %@ 跟踪？";
+"Is this one of your cables?" = "这是你的线缆之一吗？";
+"Pick…" = "选择…";
+"Don't track" = "不跟踪";
+"Yes, track as %@" = "是，作为 %@ 跟踪";
+"Track as %@?" = "作为 %@ 跟踪？";
+"Track this cable?" = "跟踪此线缆？";
+"Saved cables" = "已保存线缆";
+"What each of your cables has delivered over time" = "每根线缆随时间的性能记录";
+"No saved cables yet" = "暂无已保存的线缆";
+"Open WhatCable, find a connected cable, and choose \"Add this cable\" on its port to start tracking it." = "打开 WhatCable，找到已连接的线缆，在其端口选择\"添加此线缆\"即可开始跟踪。";
+"History" = "历史记录";
+"Rename" = "重命名";
+"Delete" = "删除";
+"Delete this cable and its history?" = "删除此线缆及其历史记录？";
+"Delete %@" = "删除 %@";
+"This removes the cable and everything recorded for it. It can't be undone." = "这将删除该线缆及其所有记录，无法撤销。";
+"Range" = "范围";
+"No history in this range" = "此范围内没有历史记录";
+"Recording happens while the cable is plugged in and WhatCable is running." = "线缆连接期间且 WhatCable 运行时会自动记录。";
+"No speed data" = "无速度数据";
+"This cable reported no negotiated link rate while connected." = "此线缆连接时未报告任何协商的链路速率。";
+"7 days" = "7 天";
+"30 days" = "30 天";
+"All" = "全部";
+"Rename cable" = "重命名线缆";
+"Saved Cables" = "已保存线缆";
+"No history yet" = "暂无历史记录";
+"Underperformed once" = "曾一次性能不足";
+"Underperformed %d times" = "性能不足 %d 次";
+"Occasional caution" = "偶尔需注意";
+"Performing" = "运行正常";
+
+/* Cable history: full-blob identity */
+"Identified by its e-marker (VID 0x%04X, PID 0x%04X)" = "已通过 e-marker 识别（VID 0x%04X，PID 0x%04X）";
+"Has an e-marker, but no unique ID (product ID not set)" = "有 e-marker，但没有唯一 ID（产品 ID 未设置）";
+"Has an e-marker, but the maker never programmed an ID" = "有 e-marker，但厂商从未写入 ID";
+"This cable has no e-marker, so it can't be tracked." = "这根线缆没有 e-marker，因此无法追踪。";
+"This cable can't be tracked" = "这根线缆无法追踪";
+"Matches your saved cable %@. Two units of the same model can't be told apart, so their history will merge if you save this one too." = "与您保存的线缆 %@ 匹配。同一型号的两根线缆无法区分，如果您也保存这一根，它们的记录会合并。";
+"Identified by its MagSafe cable ID (VID 0x%04X, PID 0x%04X). Cables of this exact model look identical, so this record tracks the model, not one physical cable." = "已通过 MagSafe 线缆 ID 识别（VID 0x%04X，PID 0x%04X）。同一型号的线缆外观完全相同，因此该记录代表的是型号，而非某一根具体线缆。";
+"You already have this MagSafe cable saved as %@. Cables of this model can't be told apart, so add its history to that one instead." = "您已将此 MagSafe 线缆保存为 %@。同一型号的线缆无法区分，请改为将记录添加到该线缆下。";
+"This cable has no e-marker, so nothing new can be recorded for it. Its existing history stays available." = "这根线缆没有 e-marker，因此无法为它记录新的内容。现有记录仍然可用。";
+"Can't add this cable" = "无法添加此线缆";
+"OK" = "好";
+
+/* Built-in display port card (issue #352). English placeholders, community can refine. */
+"%lld displays connected" = "已连接 %lld 台显示器";
+"Built-in %1$@ port %2$lld" = "内置 %1$@ 端口 %2$lld";
+
+"Display running compressed (DSC) to fit through the link" = "显示器以压缩（DSC）方式运行，以适配此链路的带宽";
+
+/* Issue #664: the display verdict reads macOS's display-node statement. English; community-refined. */
+"macOS reports your %@ at its top mode (%@) and states it is running uncompressed. The link is carrying it in full; nothing is holding the picture back." = "macOS 报告您的 %@ 正处于最高模式（%@），并声明它以未压缩方式运行。链路正在完整传输它；没有任何东西在限制画面。";
+"macOS states the current mode, %@, is running uncompressed." = "macOS 声明当前模式（%@）以未压缩方式运行。";
+"macOS reports your %@'s current mode as %@ and states that this link needs compression (DSC) to carry it. High-resolution displays use DSC to fit a mode like this through a link like this. The picture is reaching the display, so this is working as intended." = "macOS 报告您的 %@ 当前模式为 %@，并声明此链路需要压缩（DSC）才能承载它。高分辨率显示器使用 DSC 让这样的模式通过这样的链路传输。画面已正常传输至显示器，因此这是预期的工作方式。";
+"Display running compressed (DSC)" = "显示器以压缩（DSC）方式运行";
+"macOS reports your %@'s current mode as %@ with compression (DSC) on. Apple displays run compressed whenever the link supports it, so this says nothing about the link's capacity. The picture is reaching the display, so this is working as intended." = "macOS 报告您的 %@ 当前模式为 %@，且压缩（DSC）已开启。Apple 显示器只要链路支持就会以压缩方式运行，因此这不能说明链路的承载能力。画面已正常传输至显示器，因此这是预期的工作方式。";
+"macOS reports your %@'s current mode as %@ but does not name the colour format in use, so whether the link is compressing it can't be read from here." = "macOS 报告您的 %@ 当前模式为 %@，但未说明所使用的色彩格式，因此无法从这里读出链路是否正在对其压缩。";
+"macOS lists your %@'s top mode (%@) as available on this link, uncompressed. The mode selected in Display settings, or this Mac's choice for this display, is what is holding the picture below it, not the cable or adapter." = "macOS 将您的 %@ 的最高模式（%@）列为在此链路上可用，且不压缩。让画面低于该模式的是“系统设置 > 显示器”中选择的模式，或这台 Mac 对该显示器的选择，而不是线缆或适配器。";
+"macOS lists your %@'s top mode (%@) as available on this link with compression (DSC). The mode selected in Display settings, or this Mac's choice for this display, is what is holding the picture below it, not the cable or adapter." = "macOS 将您的 %@ 的最高模式（%@）列为在此链路上可用，需使用压缩（DSC）。让画面低于该模式的是“系统设置 > 显示器”中选择的模式，或这台 Mac 对该显示器的选择，而不是线缆或适配器。";
+"macOS lists your %@'s top mode (%@) as available on this link. The mode selected in Display settings, or this Mac's choice for this display, is what is holding the picture below it, not the cable or adapter." = "macOS 将您的 %@ 的最高模式（%@）列为在此链路上可用。让画面低于该模式的是“系统设置 > 显示器”中选择的模式，或这台 Mac 对该显示器的选择，而不是线缆或适配器。";
+"macOS does not offer your %@'s top mode (%@) on this link as it is now. The video is tunneled over Thunderbolt or USB4, so the cable carries far more than the display needs: this is unlikely to be the cable. It's most likely the resolution or refresh rate selected in Display settings, or this Mac's limit for this display; selecting the higher mode would retrain the link and show whether it is offered." = "在此链路的当前状态下，macOS 未提供您的 %@ 的最高模式（%@）。由于视频是通过 Thunderbolt 或 USB4 隧道传输的，线缆承载的带宽远大于显示器所需，因此这不太可能是线缆的问题。极有可能是“系统设置 > 显示器”中选择的分辨率或刷新率，或是这台 Mac 对该显示器的输出限制；选择更高的模式会重新训练链路，并显示该模式是否被提供。";
+"macOS does not offer your %@'s top mode (%@) on this link as it is now. The cable is already carrying every DisplayPort lane this Mac provides, so this is unlikely to be the cable. Selecting the higher mode in Display settings would retrain the link and show whether it is offered." = "在此链路的当前状态下，macOS 未提供您的 %@ 的最高模式（%@）。线缆已承载这台 Mac 提供的所有 DisplayPort 通道，因此这不太可能是线缆的问题。在“系统设置 > 显示器”中选择更高的模式会重新训练链路，并显示该模式是否被提供。";
+"macOS does not offer your %@'s top mode (%@) on this link as it is now. If you've selected the higher mode and aren't getting it, the cable or adapter is the likely limit; if you haven't tried it, selecting it would retrain the link and show whether it is offered." = "在此链路的当前状态下，macOS 未提供您的 %@ 的最高模式（%@）。如果您已选择了更高的模式但未能生效，则线缆或适配器可能是瓶颈；如果您尚未尝试，选择它会重新训练链路，并显示该模式是否被提供。";
+"Your %@ is reached through a USB-C to %@ adapter that reports as %@, and macOS does not offer the monitor's top mode (%@) on this link as it is now. With an adapter in the chain, the adapter's own limit may be the cap rather than the cable. A native DisplayPort connection, or a higher-spec adapter, would tell you which." = "您的 %1$@ 是通过 USB-C 转 %2$@ 适配器（识别为 %3$@）连接的，而在此链路的当前状态下，macOS 未提供显示器的最高模式（%4$@）。由于连接中存在适配器，限制瓶颈可能是适配器本身而非线缆。使用原生 DisplayPort 连接或更高规格的适配器将可以验证是哪一个导致的限制。";
+"Your %@ is reached through a USB-C to %@ adapter, and macOS does not offer the monitor's top mode (%@) on this link as it is now. With an adapter in the chain, the adapter's own limit may be the cap rather than the cable. Trying the monitor over native DisplayPort, or a higher-spec adapter, would tell you which." = "您的 %1$@ 是通过 USB-C 转 %2$@ 适配器连接的，而在此链路的当前状态下，macOS 未提供显示器的最高模式（%3$@）。由于连接中存在适配器，限制瓶颈可能是适配器本身而非线缆。尝试通过原生 DisplayPort 连接显示器，或使用更高规格的适配器，将可以判断是哪一个导致的限制。";
+"macOS's list of modes for your %@ has no entry matching its top mode (%@), so whether this link could carry it can't be read from here." = "macOS 为您的 %@ 列出的模式中没有与其最高模式（%@）匹配的条目，因此无法从这里读出此链路能否承载它。";
+"macOS's display node could not be matched to your %@, so whether this link could carry its top mode (%@) can't be read from here. If the picture looks right, it most likely is." = "无法将 macOS 的显示节点与您的 %@ 匹配，因此无法从这里读出此链路能否承载其最高模式（%@）。如果画面看起来正常，那很可能就是正常的。";
+"Monitor can do more than it is set to" = "显示器支持高于当前设置的模式";
+"Its EDID also lists %lld × %lld at %lldHz in 4:2:0 only. On the current timing, macOS records the adapter converting the picture to 4:2:0 on its way to the display." = "其 EDID 还列出了一个仅支持 4:2:0 的 %1$lld × %2$lld、%3$lld Hz 模式。在当前时序下，macOS 记录到适配器在画面送往显示器的途中将其转换为 4:2:0。";
+"Its EDID also lists %lld × %lld at %lldHz in 4:2:0 only. The current timing includes a colour mode the adapter sends to the display as 4:2:0; macOS does not name which of the timing's modes is in use." = "其 EDID 还列出了一个仅支持 4:2:0 的 %1$lld × %2$lld、%3$lld Hz 模式。当前时序包含一个适配器以 4:2:0 发送至显示器的色彩模式；macOS 未说明该时序的哪个模式正在使用。";
+"Its EDID also lists %lld × %lld at %lldHz in 4:2:0 only, a mode macOS does not send over the DisplayPort link." = "其 EDID 还列出了一个仅支持 4:2:0 的 %1$lld × %2$lld、%3$lld Hz 模式，macOS 不会通过 DisplayPort 链路发送该模式。";
+
+/* Issue #664: statement receipts, shared by the CLI text output and the Pro Display screen. */
+"macOS states: %@" = "macOS 声明：%@";
+"DSC on" = "DSC 开启";
+"Uncompressed" = "未压缩";
+"Not named" = "未说明";
+"Live mode needs about %@; the link's usable rate is %@ to %@." = "当前模式大约需要 %@；链路的可用速率为 %@ 到 %@。";
+"The bandwidth arithmetic disagrees with macOS's statement for this mode. The statement is what is shown." = "带宽计算与 macOS 对此模式的声明不一致。显示的是 macOS 的声明。";
+"macOS rates %lld of %lld colour modes on this timing as above the %@ adapter's TMDS rate limit." = "macOS 将此时序的 %2$lld 个色彩模式中的 %1$lld 个评定为超过 %3$@ 适配器的 TMDS 速率限制。";
+"macOS rates %lld of %lld colour modes on this timing as above the HDMI port's TMDS rate limit." = "macOS 将此时序的 %2$lld 个色彩模式中的 %1$lld 个评定为超过 HDMI 端口的 TMDS 速率限制。";
+"macOS's list of colour modes above the %@ adapter's TMDS rate limit could not be read for this timing." = "无法为此时序读取 macOS 列出的超过 %@ 适配器 TMDS 速率限制的色彩模式。";
+"macOS's list of colour modes above the HDMI port's TMDS rate limit could not be read for this timing." = "无法为此时序读取 macOS 列出的超过 HDMI 端口 TMDS 速率限制的色彩模式。";
+"Top mode needs at 8-bit RGB" = "最高模式需要（8 位 RGB）";
+"Top mode needs about %@ at 8-bit RGB; the link carries about %@." = "最高模式在 8 位 RGB 下大约需要 %@；链路承载约 %@。";
+"Top mode on this link: %@" = "此链路上的最高模式：%@";
+"available, uncompressed" = "可用，未压缩";
+"available, with DSC" = "可用，需 DSC";
+"available" = "可用";
+"not offered" = "未提供";
+"no matching entry" = "无匹配条目";
+"The cable is not the limit: macOS lists the top mode on this link." = "线缆不是限制：macOS 在此链路上列出了最高模式。";
+
+/* Issue #393: CIO is a floor on cable capability, not a cap (negotiated-rate resolution). Translated; nuance is community-refinable. */
+"Controller confirms Thunderbolt cable (%@)" = "控制器已确认 Thunderbolt 线缆（%@）";
+"Thunderbolt link active at %@" = "Thunderbolt 链路以 %@ 速率保持连接";
+"The cable claims %@, and the link has run at least %@. There's no host or device data to compare against, so we can't tell if anything else is limiting it." = "该线缆声称可达 %1$@，且链路实际至少已以 %2$@ 运行过。目前没有端口或设备数据可供比对，因此无法判断是否还有其他因素在限制它。";
+"The cable claims %@, and the link has run at least %@. There's no device data to compare against, so we can't tell if anything else is limiting it." = "该线缆声称可达 %1$@，且链路实际至少已以 %2$@ 运行过。目前没有设备数据可供比对，因此无法判断是否还有其他因素在限制它。";
+
+"Shared controller port" = "控制器共享端口";
+
+/* USB-IF certification */
+"USB-IF certified. Manufacturer: %@, model %@ (%@)" = "USB-IF 认证。 制造商: %1$@, 型号 %2$@ (%3$@)";
+"USB-IF certified. Manufacturer: %@, model %@" = "USB-IF 认证。 制造商: %1$@, 型号 %2$@";
+"USB-IF certified. Manufacturer: %@ (%@)" = "USB-IF 认证。 制造商: %1$@ (%2$@)";
+"USB-IF certified. Manufacturer: %@" = "USB-IF 认证。 制造商: %1$@";
+"The cable's declared maker matches the USB-IF certificate" = "线缆声明的制造商与 USB-IF 认证一致";
+
+/* Header for a USB controller group in the connected-devices tree. */
+"USB bus" = "USB 总线";
+"USB device, data blocked" = "USB 设备，数据已阻止";
+"macOS is holding data back until you approve the accessory." = "在你允许此配件之前，macOS 会阻止数据传输。";
+"Video is working. macOS is holding data back until you approve the accessory." = "视频正常。在你允许此配件之前，macOS 会阻止数据传输。";
+"USB device, data blocked · %lldW charger" = "USB 设备，数据已阻止 · %lldW 充电器";
+/* Port card source attribution (grouped headers + e-marker read state) */
+"Present, but not read on this connection. Try reconnecting; some chargers and docks block the read." = "存在，但本次连接未读取。请尝试重新插拔线缆；某些充电器和扩展坞会阻止读取。";
+"Present, but not read on this connection. macOS usually reads it above 3A or over Thunderbolt." = "存在，但本次连接未读取。macOS 通常仅在超过 3 A 或通过 Thunderbolt 时读取。";
+"This port can't read cable details: USB-only, no Power Delivery." = "此端口无法读取线缆信息：仅 USB，无 Power Delivery。";
+"Plug the cable into a Thunderbolt port to see its details." = "将线缆插入 Thunderbolt 端口即可查看其信息。";
+"The %@ contract shows the charger treated this as an e-marked, 5A-capable cable, so charging isn't limited by the cable. This Mac couldn't get its own read here. Connect the cable to another device to see its details." = "%@ 的协议表明充电器将此线缆识别为具备 e-marker、支持 5 A 的线缆，因此充电并未受到线缆限制。此 Mac 无法在此处自行读取。请将线缆连接到其他设备以查看详情。";
+"No e-marker response. Cable details aren't available on this connection. Try another device to read it." = "e-marker 无响应。此连接无法获取线缆信息。请尝试用其他设备读取。";
+"Reading cable details…" = "正在读取线缆信息…";
+"No e-marker read. The cable may have one; macOS usually reads it above 3A or over Thunderbolt." = "未读取到 e-marker。线缆可能有一个；macOS 通常仅在超过 3 A 或通过 Thunderbolt 时读取。";
+"Passive (no signal-conditioning electronics)" = "被动式（无信号调理电路）";
+"%@ isn't in our bundled vendor list" = "%1$@ 不在内置厂商列表中";
+"%@ isn't in our copy of the USB-IF registry" = "%1$@ 不在我们的 USB-IF 注册表副本中";
+"What your Mac measured" = "你的 Mac 测得的信息";
+"What the cable's e-marker reports" = "线缆 e-marker 声明的信息";
+"What the charger reports" = "充电器声明的信息";
+"What WhatCable knows" = "WhatCable 已知的信息";
+"Made by %@ (%@), per our bundled vendor list" = "据内置厂商列表，由 %1$@ (%2$@) 制造";
+"Answered, but reported no capability data." = "有响应，但未报告能力数据。";
+"Certification ID" = "认证 ID";
+"Connect a charger to identify the cable." = "请连接充电器以识别线缆。";
+
+/* Power Monitor: a charge path that never negotiates a contract (issue #592) */
+"No PD contract on this port. Incoming power shows in System Power Input below." = "此端口没有 PD 合约。输入的电力显示在下方的“系统电源输入”中。";
+
+/* PD event log: opcode-plus-argument decode of PortControllerEvtBuffer */
+"Plug attached" = "插头已接入";
+"Plug detached" = "插头已拔出";
+"Plug event" = "插头事件";
+"Source capabilities received (%lld PDOs)" = "已收到源端能力 (%lld 个 PDO)";
+"Request sent" = "已发送请求";
+"Source ready" = "源端就绪";
+"Source ready rejected" = "源端就绪被拒绝";
+"Partner identity received" = "已收到对端身份";
+"Mac became power source" = "Mac 成为供电源";
+"The Mac asked the source for one of the power levels it had offered." = "Mac 向源端请求其提供的某一档电力。";
+"The source reported whether the requested power level is now in place." = "源端报告所请求的电力档位是否已生效。";
+"The Mac started supplying power to the device on this port." = "Mac 开始为此端口上的设备供电。";
+"This event code has not been decoded yet." = "此事件代码尚未解析。";
+"The port's attach and detach counters move with this event, so it lines up with what Port Health shows." = "端口的接入和拔出计数会随该事件变化，因此与端口健康状况中显示的数字一致。";
+"The source sent its list of power data objects. The argument byte is how many it offered." = "源端发送了它的 Power Data Objects 列表。参数字节表示它提供了多少个。";
+"The Mac sent a request picking one of the advertised power levels. It always follows a source capabilities event." = "Mac 发送请求，选择了已公布的其中一档电力。它总是紧跟在源端能力事件之后。";
+"The outcome of the request. An argument of 0x81 means the source turned it down and the old power level stayed." = "请求的结果。参数为 0x81 表示源端拒绝了请求，仍维持原来的电力档位。";
+"The Mac switched to supplying power on this port, for example when it charges an attached device." = "Mac 在此端口切换为供电，例如为已连接的设备充电时。";
+"This code turns up in the buffer but we have not yet matched it to a behaviour." = "该代码出现在缓冲区中，但我们尚未确定它对应什么行为。";
+"Argument %@" = "参数 %@";
+"Arguments %@" = "参数 %@ (多个)";
+"Source ready (result unknown)" = "源端就绪 (结果未知)";
+
+/* Cable plug type, Cable VDO bits 19..18. Type-A and Type-B are deprecated by the USB-PD spec. */
+"USB Type-A plug (deprecated)" = "USB Type-A 插头（已弃用）";
+"USB Type-B plug (deprecated)" = "USB Type-B 插头（已弃用）";
+"USB Type-C plug" = "USB Type-C 插头";
+"Captive cable (built into the device)" = "固定线缆（内置于设备）";
+
+/* Cable type source: the port controller's own ActiveCable reading, and the
+   e-marker silicon vendor hint. */
+"E-marker reports passive, but the port controller detects an active cable" = "E-marker 报告为无源，但端口控制器检测到有源线缆";
+"E-marker carries its chip maker's default vendor ID (%@); the cable brand is not recorded" = "E-marker 使用其芯片厂商的默认厂商 ID (%@)，线缆品牌未被记录";
+"USB accessory (audio or adapter)" = "USB 配件（音频或转接器）";
+"This accessory has its own USB-C plug. It is not a cable and does not charge." = "此配件自带 USB-C 插头。它不是线缆，也不充电。";
+"This plug is part of the accessory, not a cable, so there is no cable rating." = "此插头是配件的一部分，不是线缆，因此没有线缆规格。";

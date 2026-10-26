@@ -1,0 +1,23 @@
+=== Port-USB-C@1 (USB-C) ===
+Charging · 60W charger
+Power is flowing. No data connection.
+
+  What the cable's e-marker reports
+    • Cable speed: USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)
+    • Cable rated to 50V / 5 A, delivers up to 240W (USB-PD caps at 48V)
+    • Passive (no signal-conditioning electronics)
+
+  What your Mac measured
+    • Currently negotiated: 20V @ 5A (60W)
+
+  What WhatCable knows
+    • Made by Apple (0x05AC), per our bundled vendor list
+
+  What the charger reports
+    • Charger advertises up to 60W
+
+Charging: Charging well · up to 60W
+  Charger and cable are well-matched. The Mac draws what it needs moment to moment, up to this limit.
+
+Display: Display connected
+  A display is connected but its capabilities aren't readable, so there's nothing to compare the link against.

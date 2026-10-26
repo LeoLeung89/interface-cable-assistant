@@ -1,0 +1,1139 @@
+import Foundation
+import Testing
+@testable import WhatCableCore
+
+/// Unit tests for `ConnectedDeviceTree.rows`
+/// (`Sources/WhatCableCore/Devices/ConnectedDeviceTree.swift`): the shared
+/// "Connected devices" row builder that roots the USB tree under the
+/// downstream Thunderbolt device (with its live link speed) when one is
+/// present, and renders the plain USB tree unchanged when not.
+///
+/// The corpus-replay sweep for the no-Thunderbolt path lives at the bottom
+/// of this file; the dock-present path uses hand-built switch fixtures
+/// because no test-kit probe captures `IOThunderboltSwitch` dumps.
+@Suite("ConnectedDeviceTree rows")
+struct ConnectedDeviceTreeTests {
+
+    // MARK: - Fixtures
+
+    /// Active USB-C data port at socket `@4`. Same proven-compiling
+    /// `AppleHPMInterface` init shape as the DataLinkDiagnostic fixture.
+    private func makePort(
+        serviceName: String = "Port-USB-C@4",
+        transportsSupported: [String] = ["CC", "USB2", "USB3", "CIO", "DisplayPort"]
+    ) -> AppleHPMInterface {
+        AppleHPMInterface(
+            id: 1,
+            serviceName: serviceName,
+            className: "AppleHPMInterfaceType10",
+            portDescription: nil,
+            portTypeDescription: "USB-C",
+            portNumber: 4,
+            connectionActive: true,
+            activeCable: nil,
+            opticalCable: nil,
+            usbActive: nil,
+            superSpeedActive: nil,
+            usbModeType: nil,
+            usbConnectString: nil,
+            transportsSupported: transportsSupported,
+            transportsActive: ["CC", "USB3", "CIO"],
+            transportsProvisioned: [],
+            plugOrientation: nil,
+            plugEventCount: nil,
+            connectionCount: nil,
+            overcurrentCount: nil,
+            pinConfiguration: [:],
+            powerCurrentLimits: [],
+            firmwareVersion: nil,
+            bootFlagsHex: nil,
+            rawProperties: [:]
+        )
+    }
+
+    private func lanePort(
+        speed: LinkGeneration?,
+        widthRaw: UInt8,
+        socketID: String? = nil,
+        portNumber: Int = 1,
+        hopTable: [HopTableEntry] = []
+    ) -> IOThunderboltPort {
+        let speedRaw: UInt8
+        switch speed {
+        case .tb3: speedRaw = 0x8
+        case .usb4Tb4: speedRaw = 0x4
+        case .tb5: speedRaw = 0x2
+        default: speedRaw = 0x0
+        }
+        return IOThunderboltPort(
+            portNumber: portNumber,
+            socketID: socketID,
+            adapterType: .lane,
+            currentSpeed: LinkGeneration.from(rawSpeedCode: speedRaw),
+            currentWidth: LinkWidth(rawValue: widthRaw),
+            targetWidth: nil,
+            rawTargetSpeed: nil,
+            linkBandwidthRaw: nil,
+            hopTable: hopTable
+        )
+    }
+
+    /// A DisplayPort tunnel adapter (not a lane), used to build cross-cable
+    /// video tunnels: pair with `lanePort`'s `hopTable` on the host root
+    /// carrying the same `pathUUID`.
+    private func dpPort(portNumber: Int, hopTable: [HopTableEntry]) -> IOThunderboltPort {
+        IOThunderboltPort(
+            portNumber: portNumber,
+            socketID: nil,
+            adapterType: .dpIn,
+            currentSpeed: nil,
+            currentWidth: nil,
+            targetWidth: nil,
+            rawTargetSpeed: nil,
+            linkBandwidthRaw: nil,
+            hopTable: hopTable
+        )
+    }
+
+    private func hopEntry(pathUUID: String, counter: Int = 0) -> HopTableEntry {
+        HopTableEntry(counter: counter, hopID: 8, dstHopID: 8, dstPort: 1, pathUUID: pathUUID)
+    }
+
+    /// Host root whose lane port carries `Socket ID == socketID`, matching
+    /// the `@N` suffix on the port's serviceName. `laneHopTable` lets a test
+    /// put a tunnel's path UUID directly on the root's own lane, the shape a
+    /// real cross-cable tunnel takes (see `ActiveTunnelPresentationTests`).
+    private func hostRoot(socketID: String = "4", laneHopTable: [HopTableEntry] = []) -> IOThunderboltSwitch {
+        IOThunderboltSwitch(
+            id: 100,
+            className: "IOThunderboltSwitchType5",
+            vendorID: 1452,
+            vendorName: "Apple Inc.",
+            modelName: "Mac",
+            routerID: 0,
+            depth: 0,
+            routeString: 0,
+            upstreamPortNumber: 0,
+            maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 0xC),
+            ports: [lanePort(speed: .usb4Tb4, widthRaw: 0x2, socketID: socketID, hopTable: laneHopTable)],
+            parentSwitchUID: nil
+        )
+    }
+
+    /// Downstream device switch (a dock) whose lane carries the given link.
+    private func dockSwitch(
+        id: Int64 = 200,
+        parent: Int64 = 100,
+        vendor: String = "Ugreen Group Limited",
+        model: String = "TBT5 Docking Station 10-in-1",
+        speed: LinkGeneration? = .usb4Tb4,
+        widthRaw: UInt8 = 0x2,
+        ports: [IOThunderboltPort]? = nil
+    ) -> IOThunderboltSwitch {
+        IOThunderboltSwitch(
+            id: id,
+            className: "IOThunderboltSwitchType7",
+            vendorID: 0x2B89,
+            vendorName: vendor,
+            modelName: model,
+            routerID: 1,
+            depth: 1,
+            routeString: 1,
+            upstreamPortNumber: 1,
+            maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 0xE),
+            ports: ports ?? [lanePort(speed: speed, widthRaw: widthRaw)],
+            parentSwitchUID: parent
+        )
+    }
+
+    private func device(
+        id: UInt64,
+        locationID: UInt32,
+        name: String?,
+        speedRaw: UInt8
+    ) -> USBDevice {
+        USBDevice(
+            id: id,
+            locationID: locationID,
+            vendorID: 0x1234,
+            productID: 0x5678,
+            vendorName: nil,
+            productName: name,
+            serialNumber: nil,
+            usbVersion: nil,
+            speedRaw: speedRaw,
+            busPowerMA: nil,
+            currentMA: nil,
+            rawProperties: [:]
+        )
+    }
+
+    /// A hub at the bus root plus one child behind it: depths 0 and 1.
+    private var hubAndChild: [USBDevice] {
+        [
+            device(id: 1, locationID: 0x0110_0000, name: "USB3 HUB", speedRaw: 4),
+            device(id: 2, locationID: 0x0111_0000, name: "USB 10_100_1000 LAN", speedRaw: 3),
+        ]
+    }
+
+    private func displayPort(productName: String?) -> IOPortTransportStateDisplayPort {
+        IOPortTransportStateDisplayPort(
+            link: DisplayPortLink(
+                active: true, laneCount: 2, maxLaneCount: 4,
+                linkRate: 0, tunneled: true, hpdState: 1
+            ),
+            monitor: MonitorInfo(
+                manufacturerName: nil,
+                productName: productName,
+                productId: nil,
+                yearOfManufacture: nil,
+                edid: nil
+            )
+        )
+    }
+
+    // MARK: - No Thunderbolt device: plain tree, unchanged
+
+    @Test("No TB switches: rows are the plain USB tree with original depths")
+    func noThunderboltPlainTree() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild,
+            port: makePort(),
+            thunderboltSwitches: [],
+            displayPorts: []
+        )
+        try #require(rows.count == 2)
+        // Compared field by field: these rows carry a device node, and Row's
+        // equality now includes it, so a whole-Row literal would have to
+        // reconstruct the node just to assert on the text.
+        #expect(rows[0].label == "USB3 HUB - Super Speed+ (10 Gbps)")
+        #expect(rows[0].depth == 0)
+        #expect(rows[1].label == "USB 10_100_1000 LAN - Super Speed (5 Gbps)")
+        #expect(rows[1].depth == 1)
+    }
+
+    @Test("No TB switches and a monitor: no display row (the banner covers it)")
+    func noThunderboltNoDisplayRow() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild,
+            port: makePort(),
+            thunderboltSwitches: [],
+            displayPorts: [displayPort(productName: "LEN G34w-10")]
+        )
+        try #require(rows.count == 2, "A monitor without a TB root must not add a row")
+        #expect(!rows.contains { $0.label.contains("G34w") })
+    }
+
+    @Test("Nothing connected: empty rows")
+    func emptyInputEmptyRows() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [],
+            displayPorts: []
+        )
+        #expect(rows.isEmpty)
+    }
+
+    // MARK: - Thunderbolt device downstream: rooted tree
+
+    @Test("Dock present, nothing places its devices: they sit under the port's other-devices heading")
+    func dockRootRow() throws {
+        // No evidence ties either device to the dock, so they are not drawn
+        // inside it: the heading is a peer of the dock row, not a child.
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild,
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()],
+            displayPorts: []
+        )
+        try #require(rows.count == 4)
+        #expect(rows[0] == ConnectedDeviceTree.Row(
+            label: "Ugreen Group Limited TBT5 Docking Station 10-in-1 - Thunderbolt link active at 40 Gbps",
+            depth: 0
+        ))
+        #expect(rows[1] == ConnectedDeviceTree.Row(label: "Other USB devices on this port", depth: 0))
+        #expect(rows[2].depth == 1 && rows[2].label.hasPrefix("USB3 HUB"))
+        #expect(rows[3].depth == 2 && rows[3].label.hasPrefix("USB 10_100_1000 LAN"))
+    }
+
+    @Test("TB5 dual-lane link labels 80 Gbps")
+    func tb5LinkLabels80() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch(speed: .tb5, widthRaw: 0x2)],
+            displayPorts: []
+        )
+        try #require(rows.count == 1)
+        #expect(rows[0].label.hasSuffix("Thunderbolt link active at 80 Gbps"))
+    }
+
+    @Test("Asymmetric TB5 link falls back to the per-direction label, never a false total")
+    func asymmetricFallsBack() throws {
+        // The dock's upstream lane is 1 TX / 3 RX (raw 0x8), the real shape.
+        // No single symmetric total exists, so the fallback reads one rate
+        // per direction, and the row is written from the Mac's side.
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch(speed: .tb5, widthRaw: 0x8)],
+            displayPorts: []
+        )
+        try #require(rows.count == 1)
+        #expect(rows[0].label.hasSuffix("Up to 120 Gb/s out, 40 Gb/s in"), "Asymmetric link must read from the Mac's side: \(rows[0].label)")
+        #expect(!rows[0].label.contains("Thunderbolt link active at"))
+    }
+
+    @Test("Idle lane: root row is the bare device name, no link suffix")
+    func idleLaneNameOnly() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch(speed: nil, widthRaw: 0x0)],
+            displayPorts: []
+        )
+        try #require(rows.count == 1)
+        #expect(rows[0] == ConnectedDeviceTree.Row(label: "Ugreen Group Limited TBT5 Docking Station 10-in-1", depth: 0))
+    }
+
+    @Test("Dock with no USB devices: root row alone")
+    func dockAloneStillRoots() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()],
+            displayPorts: []
+        )
+        try #require(rows.count == 1)
+        #expect(rows[0].depth == 0)
+    }
+
+    @Test("Daisy chain: the first hop roots the tree and the device behind it nests under it")
+    func daisyChainNestsTheWholeChain() throws {
+        // This used to assert the opposite: one row, and the deeper device
+        // deliberately absent. That was the shipped behaviour and it is the
+        // thing the chain layout changes. A daisy-chained device is something
+        // the user physically plugged in, and the fabric reports it exactly
+        // (depth and parent switch), so hiding it left the section unable to
+        // answer "what is connected where" on precisely the setups where the
+        // question is hardest. It is read from the fabric, not inferred.
+        let deeper = dockSwitch(id: 300, parent: 200, vendor: "Samsung", model: "X5")
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch(), deeper],
+            displayPorts: []
+        )
+        try #require(rows.count == 2)
+        #expect(rows[0].depth == 0)
+        #expect(rows[0].label.contains("TBT5 Docking Station"))
+        #expect(rows[1].depth == 1, "The chained device hangs under the first hop, not beside it")
+        #expect(rows[1].label.contains("X5"))
+        #expect(rows.allSatisfy { $0.device == nil }, "Chain rows describe fabric devices, not USB ones")
+    }
+
+    @Test("Daisy-chained dock with a slower downstream lane: the root row shows the upstream (Mac-facing) leg")
+    func upstreamLaneWinsOverDownstream() throws {
+        // Downstream lane listed FIRST (port 3, TB3 dual = 20 Gbps) so a
+        // naive first-active-lane pick would label 20; the upstream lane
+        // (port 1 == upstreamPortNumber, TB4 dual = 40 Gbps) must win.
+        let mixedDock = dockSwitch(ports: [
+            lanePort(speed: .tb3, widthRaw: 0x2, portNumber: 3),
+            lanePort(speed: .usb4Tb4, widthRaw: 0x2, portNumber: 1),
+        ])
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), mixedDock],
+            displayPorts: []
+        )
+        try #require(rows.count == 1)
+        #expect(rows[0].label.hasSuffix("Thunderbolt link active at 40 Gbps"),
+            "Root row must describe the Mac-facing leg, got: \(rows[0].label)")
+    }
+
+    @Test("Different socket: another port's dock never roots this port's tree")
+    func otherSocketNoRoot() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild,
+            port: makePort(serviceName: "Port-USB-C@1"),
+            thunderboltSwitches: [hostRoot(socketID: "4"), dockSwitch()],
+            displayPorts: []
+        )
+        try #require(rows.count == 2)
+        #expect(rows[0].depth == 0 && rows[0].label.hasPrefix("USB3 HUB"))
+    }
+
+    @Test("Power-only port (MagSafe shape): no root row even with a fabric present")
+    func magSafeNoRoot() throws {
+        // transportsSupported without data transports fails the carriesData
+        // gate inside ThunderboltTopology.socketID(for:), issue #195.
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild,
+            port: makePort(serviceName: "Port-USB-C@4", transportsSupported: ["CC"]),
+            thunderboltSwitches: [hostRoot(), dockSwitch()],
+            displayPorts: []
+        )
+        try #require(rows.count == 2)
+        #expect(rows[0].depth == 0 && rows[0].label.hasPrefix("USB3 HUB"))
+    }
+
+    // MARK: - Display rows
+
+    @Test("Monitor under the dock: display row at depth 1, before the USB branch")
+    func displayRowUnderRoot() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild,
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()],
+            displayPorts: [displayPort(productName: "LEN G34w-10")]
+        )
+        try #require(rows.count == 5)
+        #expect(rows[1] == ConnectedDeviceTree.Row(label: "Display: LEN G34w-10", depth: 1))
+        #expect(rows[2] == ConnectedDeviceTree.Row(label: "Other USB devices on this port", depth: 0), "the unplaced USB devices follow the display, under their own heading")
+        #expect(rows[3].label.hasPrefix("USB3 HUB"))
+    }
+
+    @Test("Two monitors: one row each")
+    func twoMonitorsTwoRows() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()],
+            displayPorts: [displayPort(productName: "LEN G34w-10"), displayPort(productName: "DELL U2723QE")]
+        )
+        try #require(rows.count == 3)
+        #expect(rows[1].label == "Display: LEN G34w-10")
+        #expect(rows[2].label == "Display: DELL U2723QE")
+    }
+
+    @Test("Monitor with no readable name: bare Display label")
+    func namelessDisplayRow() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()],
+            displayPorts: [displayPort(productName: nil)]
+        )
+        try #require(rows.count == 2)
+        #expect(rows[1] == ConnectedDeviceTree.Row(label: "Display", depth: 1))
+    }
+
+    // MARK: - "video output N" display suffix (TB link tree root, Phase B)
+
+    private static let videoUUID = "AAAAAAAA-0000-0000-0000-000000000001"
+    private static let videoUUID2 = "BBBBBBBB-0000-0000-0000-000000000002"
+
+    @Test("Single display + single cross-cable video tunnel: display row gets the 'video output N' suffix")
+    func singleDisplaySingleVideoTunnelSuffix() throws {
+        let root = hostRoot(laneHopTable: [hopEntry(pathUUID: Self.videoUUID)])
+        let dock = dockSwitch(ports: [
+            lanePort(speed: .usb4Tb4, widthRaw: 0x2),
+            dpPort(portNumber: 5, hopTable: [hopEntry(pathUUID: Self.videoUUID)]),
+        ])
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [root, dock],
+            displayPorts: [displayPort(productName: "LEN G34w-10")]
+        )
+        try #require(rows.count == 2)
+        #expect(rows[1] == ConnectedDeviceTree.Row(
+            label: "Display: LEN G34w-10 \u{00B7} video output 5",
+            depth: 1
+        ))
+    }
+
+    @Test("Two displays: no suffix, even with exactly one cross-cable video tunnel")
+    func twoDisplaysNoSuffix() throws {
+        let root = hostRoot(laneHopTable: [hopEntry(pathUUID: Self.videoUUID)])
+        let dock = dockSwitch(ports: [
+            lanePort(speed: .usb4Tb4, widthRaw: 0x2),
+            dpPort(portNumber: 5, hopTable: [hopEntry(pathUUID: Self.videoUUID)]),
+        ])
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [root, dock],
+            displayPorts: [displayPort(productName: "LEN G34w-10"), displayPort(productName: "DELL U2723QE")]
+        )
+        try #require(rows.count == 3)
+        #expect(rows[1].label == "Display: LEN G34w-10", "No suffix: which tunnel feeds which monitor is ambiguous")
+        #expect(rows[2].label == "Display: DELL U2723QE")
+    }
+
+    @Test("Two cross-cable video tunnels: no suffix, even with exactly one display")
+    func twoVideoTunnelsNoSuffix() throws {
+        let root = hostRoot(laneHopTable: [
+            hopEntry(pathUUID: Self.videoUUID),
+            hopEntry(pathUUID: Self.videoUUID2),
+        ])
+        let dock = dockSwitch(ports: [
+            lanePort(speed: .usb4Tb4, widthRaw: 0x2),
+            dpPort(portNumber: 5, hopTable: [hopEntry(pathUUID: Self.videoUUID)]),
+            dpPort(portNumber: 6, hopTable: [hopEntry(pathUUID: Self.videoUUID2)]),
+        ])
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [root, dock],
+            displayPorts: [displayPort(productName: "LEN G34w-10")]
+        )
+        try #require(rows.count == 2)
+        #expect(rows[1].label == "Display: LEN G34w-10", "Ambiguous: two candidate tunnels for one display")
+    }
+
+    @Test("Tunnel terminating at the host root itself (depth 0): not cross-cable, no suffix")
+    func hostInternalTunnelNoSuffix() throws {
+        // The video UUID is carried only by a protocol adapter ON the host
+        // root: segmentCount 1, terminal = the root itself (depth 0). Not
+        // cross-cable per the locked design rule, so ActiveTunnelPresentation's
+        // crossCableTunnels filter (shared with this suffix) drops it. A
+        // separate, unrelated dock is present purely so a root row exists to
+        // hang the display row under.
+        let root = IOThunderboltSwitch(
+            id: 100,
+            className: "IOThunderboltSwitchType5",
+            vendorID: 1452,
+            vendorName: "Apple Inc.",
+            modelName: "Mac",
+            routerID: 0,
+            depth: 0,
+            routeString: 0,
+            upstreamPortNumber: 0,
+            maxPortNumber: 8,
+            supportedSpeed: SupportedSpeedMask(rawValue: 0xC),
+            ports: [
+                lanePort(speed: .usb4Tb4, widthRaw: 0x2, socketID: "4"),
+                dpPort(portNumber: 9, hopTable: [hopEntry(pathUUID: Self.videoUUID)]),
+            ],
+            parentSwitchUID: nil
+        )
+        let dock = dockSwitch()
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [root, dock],
+            displayPorts: [displayPort(productName: "LEN G34w-10")]
+        )
+        try #require(rows.count == 2)
+        #expect(rows[1].label == "Display: LEN G34w-10", "Host-internal tunnel must not produce a suffix")
+    }
+
+    @Test("Dock-internal-only video-kind UUID (distinctSwitchCount 1): no 'video output N' suffix, even with one display and one candidate tunnel")
+    func dockInternalOnlyVideoTunnelNoSuffix() throws {
+        // Only the dock's own DP adapter carries this UUID; the host
+        // root's lane never sees it (`hostRoot()` defaults to an empty
+        // `laneHopTable`). Mirrors the real ASUS-internal PCIe UUID
+        // 93B7660C in research/dumps/tb-fabric/052-joeshaw-..., with a DP
+        // adapter instead of PCIe so it exercises the video-suffix path
+        // this suite covers.
+        let root = hostRoot()
+        let dock = dockSwitch(ports: [
+            lanePort(speed: .usb4Tb4, widthRaw: 0x2),
+            dpPort(portNumber: 5, hopTable: [hopEntry(pathUUID: Self.videoUUID)]),
+        ])
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [root, dock],
+            displayPorts: [displayPort(productName: "LEN G34w-10")]
+        )
+        try #require(rows.count == 2)
+        #expect(rows[1].label == "Display: LEN G34w-10", "Dock-internal-only tunnel must not produce a suffix")
+    }
+
+    @Test("No displays: a cross-cable video tunnel present doesn't change the no-display case")
+    func noDisplayCaseUnchangedWithVideoTunnel() throws {
+        let root = hostRoot(laneHopTable: [hopEntry(pathUUID: Self.videoUUID)])
+        let dock = dockSwitch(ports: [
+            lanePort(speed: .usb4Tb4, widthRaw: 0x2),
+            dpPort(portNumber: 5, hopTable: [hopEntry(pathUUID: Self.videoUUID)]),
+        ])
+        let rows = ConnectedDeviceTree.rows(
+            devices: [],
+            port: makePort(),
+            thunderboltSwitches: [root, dock],
+            displayPorts: []
+        )
+        try #require(rows.count == 1, "Root row alone: no display rows to suffix")
+        #expect(rows[0].depth == 0)
+    }
+
+    // MARK: - Grouping by USB controller
+
+    /// Same shape as `device`, plus the controller bus the device enumerates
+    /// on. A dock exposes several controllers, and that is what the grouping
+    /// keys off.
+    private func busDevice(
+        id: UInt64,
+        locationID: UInt32,
+        name: String?,
+        speedRaw: UInt8,
+        busIndex: Int
+    ) -> USBDevice {
+        USBDevice(
+            id: id,
+            locationID: locationID,
+            vendorID: 0x1234,
+            productID: 0x5678,
+            vendorName: nil,
+            productName: name,
+            serialNumber: nil,
+            usbVersion: nil,
+            speedRaw: speedRaw,
+            busPowerMA: nil,
+            currentMA: nil,
+            busIndex: busIndex,
+            rawProperties: [:]
+        )
+    }
+
+    @Test("Two USB controllers: devices group under a bus header each")
+    func twoBusesGroup() throws {
+        let devices = [
+            busDevice(id: 1, locationID: 0x2020_0000, name: "Audio", speedRaw: 1, busIndex: 0x20),
+            busDevice(id: 2, locationID: 0x2070_0000, name: "Extreme Pro", speedRaw: 4, busIndex: 0x20),
+            busDevice(id: 3, locationID: 0x2120_0000, name: "Shure MV7", speedRaw: 1, busIndex: 0x21),
+        ]
+        let rows = ConnectedDeviceTree.rows(
+            devices: devices, port: makePort(),
+            thunderboltSwitches: [], displayPorts: []
+        )
+        let labels = rows.map { $0.label }
+        #expect(labels.contains("USB bus 0x20"))
+        #expect(labels.contains("USB bus 0x21"))
+
+        // Headers sit at depth 0 with their devices indented one level under.
+        let header20 = try #require(rows.firstIndex { $0.label == "USB bus 0x20" })
+        #expect(rows[header20].depth == 0)
+        #expect(rows[header20 + 1].depth == 1)
+        #expect(rows[header20 + 1].label.hasPrefix("Audio"))
+
+        // Every device still appears exactly once.
+        #expect(labels.filter { $0.hasPrefix("Shure MV7") }.count == 1)
+        #expect(rows.count == 5)
+    }
+
+    @Test("A device with no readable bus suppresses grouping entirely")
+    func unknownBusSuppressesGrouping() {
+        // Partial grouping would imply the ungrouped device sits on a bus we
+        // could not read, so the whole set falls back to the plain tree.
+        let devices = [
+            busDevice(id: 1, locationID: 0x2020_0000, name: "Audio", speedRaw: 1, busIndex: 0x20),
+            device(id: 2, locationID: 0x2120_0000, name: "Shure MV7", speedRaw: 1),
+        ]
+        let rows = ConnectedDeviceTree.rows(
+            devices: devices, port: makePort(),
+            thunderboltSwitches: [], displayPorts: []
+        )
+        #expect(!rows.contains { $0.label.hasPrefix("USB bus") })
+        #expect(rows.count == 2)
+    }
+
+    @Test("A hub child with no readable bus suppresses grouping")
+    func unknownBusOnHubChildSuppressesGrouping() {
+        // The child hangs off the hub by locationID, so it is a descendant
+        // rather than a root. Checking roots alone would let it render under
+        // its parent's header, claiming a controller nothing established.
+        let devices = [
+            busDevice(id: 1, locationID: 0x2010_0000, name: "USB3 HUB", speedRaw: 4, busIndex: 0x20),
+            device(id: 2, locationID: 0x2011_0000, name: "LAN", speedRaw: 3),
+            busDevice(id: 3, locationID: 0x2120_0000, name: "Shure MV7", speedRaw: 1, busIndex: 0x21),
+        ]
+        let rows = ConnectedDeviceTree.rows(
+            devices: devices, port: makePort(),
+            thunderboltSwitches: [], displayPorts: []
+        )
+        #expect(!rows.contains { $0.label.hasPrefix("USB bus") })
+        #expect(rows.count == 3)
+    }
+
+    @Test("Device rows carry their node so the app can expand them")
+    func deviceRowsCarryTheirNode() throws {
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild, port: makePort(),
+            thunderboltSwitches: [], displayPorts: []
+        )
+        try #require(rows.count == 2)
+        #expect(rows.allSatisfy { $0.device != nil })
+        #expect(rows[0].device?.device.productName == "USB3 HUB")
+    }
+
+    @Test("Devices under a Thunderbolt root keep their node")
+    func devicesUnderDockKeepTheirNode() throws {
+        // The dock path re-maps rows to shift depth. Dropping the node there
+        // would leave the expander working everywhere except behind a dock.
+        let rows = ConnectedDeviceTree.rows(
+            devices: hubAndChild, port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()], displayPorts: []
+        )
+        let root = try #require(rows.first)
+        #expect(root.device == nil, "the Thunderbolt root row is not a USB device")
+
+        #expect(rows[1] == ConnectedDeviceTree.Row(label: "Other USB devices on this port", depth: 0), "unplaced devices sit under the other-devices heading")
+        let deviceRows = rows.filter { $0.device != nil }
+        try #require(deviceRows.count == 2)
+        #expect(deviceRows.allSatisfy { $0.device != nil })
+        #expect(deviceRows.allSatisfy { $0.depth >= 1 }, "shifted under the root")
+    }
+
+    @Test("Dock plus multiple controllers: bus headers and hub depths stack correctly")
+    func dockAndBusGroupingStackDepths() throws {
+        // The one shape where two independent depth shifts combine: rows move
+        // down one level for their bus header AND one more to sit under the
+        // Thunderbolt root. It is also the real-world case, because a dock is
+        // precisely what fans devices across several controllers. Every other
+        // grouping test runs without a dock, so nothing pinned this before.
+        let devices = [
+            busDevice(id: 1, locationID: 0x2010_0000, name: "USB3 HUB", speedRaw: 4, busIndex: 0x20),
+            busDevice(id: 2, locationID: 0x2011_0000, name: "LAN", speedRaw: 3, busIndex: 0x20),
+            busDevice(id: 3, locationID: 0x2120_0000, name: "Shure MV7", speedRaw: 1, busIndex: 0x21),
+        ]
+        let rows = ConnectedDeviceTree.rows(
+            devices: devices, port: makePort(),
+            thunderboltSwitches: [hostRoot(), dockSwitch()], displayPorts: []
+        )
+
+        try #require(rows.count == 7, "root + other-devices heading + 2 bus headers + 3 devices")
+        // Thunderbolt root, the heading beside it (nothing places these
+        // devices in the dock), then each bus header one level under the
+        // heading, with the hub's child one level deeper again than the hub.
+        #expect(rows[0].depth == 0)
+        #expect(rows[0].device == nil, "the root is the dock, not a USB device")
+        #expect(rows[1] == ConnectedDeviceTree.Row(label: "Other USB devices on this port", depth: 0))
+
+        #expect(rows[2].label.hasPrefix("USB bus"))
+        #expect(rows[2].depth == 1)
+        #expect(rows[3].label.hasPrefix("USB3 HUB"))
+        #expect(rows[3].depth == 2)
+        #expect(rows[4].label.hasPrefix("LAN"))
+        #expect(rows[4].depth == 3, "hub child keeps its extra level under both shifts")
+
+        #expect(rows[5].label.hasPrefix("USB bus"))
+        #expect(rows[5].depth == 1, "second header sits at the same level as the first")
+        #expect(rows[6].label.hasPrefix("Shure MV7"))
+        #expect(rows[6].depth == 2)
+
+        // No row may end up deeper than its own hub nesting plus the two
+        // structural shifts, which is what a double-indent bug would look like.
+        #expect(rows.allSatisfy { $0.depth <= 3 })
+    }
+
+    @Test("Rows differing only in a hub child are not equal")
+    func rowEqualityComparesChildren() {
+        // The doc on Row.== claims equality covers the node "children
+        // included". The sibling test below only varies leaf fields, so a
+        // shallow comparison that compared the device and depth but forgot to
+        // recurse would pass it while breaking that promise. This pins the
+        // recursion: two hubs identical in every respect except one child's
+        // serial must not compare equal.
+        func hub(childSerial: String) -> USBDeviceNode {
+            let child = USBDevice(
+                id: 2, locationID: 0x2011_0000, vendorID: 0x1234, productID: 0x5678,
+                vendorName: "Acme", productName: "LAN", serialNumber: childSerial,
+                usbVersion: nil, speedRaw: 3, busPowerMA: nil, currentMA: nil,
+                rawProperties: [:]
+            )
+            let parent = USBDevice(
+                id: 1, locationID: 0x2010_0000, vendorID: 0x1234, productID: 0x5678,
+                vendorName: "Acme", productName: "USB3 HUB", serialNumber: "HUB",
+                usbVersion: nil, speedRaw: 4, busPowerMA: nil, currentMA: nil,
+                rawProperties: [:]
+            )
+            return USBDeviceNode(
+                device: parent, depth: 0,
+                children: [USBDeviceNode(device: child, depth: 1, children: [])]
+            )
+        }
+        let a = ConnectedDeviceTree.Row(label: "USB3 HUB", depth: 0, device: hub(childSerial: "AAA"))
+        let b = ConnectedDeviceTree.Row(label: "USB3 HUB", depth: 0, device: hub(childSerial: "BBB"))
+        #expect(a != b, "a differing hub child must make the rows unequal")
+        #expect(a == ConnectedDeviceTree.Row(label: "USB3 HUB", depth: 0, device: hub(childSerial: "AAA")))
+    }
+
+    @Test("Row equality handles a present versus absent device")
+    func rowEqualityHandlesNilDevice() {
+        let node = USBDeviceNode(
+            device: USBDevice(
+                id: 1, locationID: 0x2010_0000, vendorID: 0x1234, productID: 0x5678,
+                vendorName: nil, productName: "Widget", serialNumber: nil,
+                usbVersion: nil, speedRaw: 4, busPowerMA: nil, currentMA: nil,
+                rawProperties: [:]
+            ),
+            depth: 0, children: []
+        )
+        let withDevice = ConnectedDeviceTree.Row(label: "Widget", depth: 0, device: node)
+        let withoutDevice = ConnectedDeviceTree.Row(label: "Widget", depth: 0)
+        // A bus header and a device row can carry the same label and depth, so
+        // the presence of the node has to be part of the comparison.
+        #expect(withDevice != withoutDevice)
+        #expect(withoutDevice == ConnectedDeviceTree.Row(label: "Widget", depth: 0))
+    }
+
+    @Test("Rows differing only in the attached device's detail are not equal")
+    func rowEqualityComparesDeviceContents() {
+        // Same IOKit entry ID, different detail. Comparing the node by ID alone
+        // would call these equal, and the expandable row renders exactly the
+        // fields that differ, so an assertion on rows would miss a wrong serial
+        // or vendor entirely.
+        func node(serial: String?, vendor: String?) -> USBDeviceNode {
+            let d = USBDevice(
+                id: 42, locationID: 0x2010_0000, vendorID: 0x1234, productID: 0x5678,
+                vendorName: vendor, productName: "Widget", serialNumber: serial,
+                usbVersion: nil, speedRaw: 4, busPowerMA: nil, currentMA: nil,
+                rawProperties: [:]
+            )
+            return USBDeviceNode(device: d, depth: 0, children: [])
+        }
+        let a = ConnectedDeviceTree.Row(label: "Widget", depth: 0, device: node(serial: "AAA", vendor: "Acme"))
+        let b = ConnectedDeviceTree.Row(label: "Widget", depth: 0, device: node(serial: "BBB", vendor: "Acme"))
+        let c = ConnectedDeviceTree.Row(label: "Widget", depth: 0, device: node(serial: "AAA", vendor: "Other"))
+        let sameAsA = ConnectedDeviceTree.Row(label: "Widget", depth: 0, device: node(serial: "AAA", vendor: "Acme"))
+
+        #expect(a != b, "different serial must not compare equal")
+        #expect(a != c, "different vendor must not compare equal")
+        #expect(a == sameAsA, "identical contents still compare equal")
+    }
+
+    @Test("Bus header rows carry no node")
+    func busHeaderRowsCarryNoNode() throws {
+        let devices = [
+            busDevice(id: 1, locationID: 0x2020_0000, name: "Audio", speedRaw: 1, busIndex: 0x20),
+            busDevice(id: 2, locationID: 0x2120_0000, name: "Shure MV7", speedRaw: 1, busIndex: 0x21),
+        ]
+        let rows = ConnectedDeviceTree.rows(
+            devices: devices, port: makePort(),
+            thunderboltSwitches: [], displayPorts: []
+        )
+        let header = try #require(rows.first { $0.label.hasPrefix("USB bus") })
+        #expect(header.device == nil)
+    }
+
+    @Test("One USB controller: no bus header, rows unchanged")
+    func oneBusIsNotGrouped() {
+        let devices = [
+            busDevice(id: 1, locationID: 0x2020_0000, name: "Audio", speedRaw: 1, busIndex: 0x20),
+            busDevice(id: 2, locationID: 0x2070_0000, name: "Extreme Pro", speedRaw: 4, busIndex: 0x20),
+        ]
+        let rows = ConnectedDeviceTree.rows(
+            devices: devices, port: makePort(),
+            thunderboltSwitches: [], displayPorts: []
+        )
+        // A lone header would add indentation and no information.
+        #expect(!rows.contains { $0.label.hasPrefix("USB bus") })
+        #expect(rows.count == 2)
+        #expect(rows.allSatisfy { $0.depth == 0 })
+    }
+
+    // MARK: - Host-to-host: the peer Mac's row says "USB link only"
+
+    /// Empty peer metadata, nothing provisioned: the CIO half of the
+    /// Mac-to-Mac signature.
+    private func hostToHostCIO() -> CIOCableCapability {
+        CIOCableCapability(
+            id: 10, portKey: "2/4",
+            cableGeneration: 2, negotiatedLinkSpeed: 4, generation: 3,
+            asymmetricModeSupported: true, legacyAdapter: false,
+            linkTrainingMode: 2, hpmControllerUUID: nil,
+            hasPeerMetadata: false, tunneledTransportsProvisioned: []
+        )
+    }
+
+    private func appleUSB2Root(id: UInt64 = 20, productID: UInt16, productName: String) -> USBDevice {
+        USBDevice(
+            id: id,
+            locationID: 0x0110_0000,
+            vendorID: 0x05AC,
+            productID: productID,
+            vendorName: "Apple Inc.",
+            productName: productName,
+            serialNumber: nil,
+            usbVersion: "2.00",
+            speedRaw: 2,
+            busPowerMA: nil,
+            currentMA: nil,
+            controllerPortName: "Port-USB-C@4",
+            isThunderboltTunnelled: false,
+            rawProperties: [:]
+        )
+    }
+
+    @Test("Peer Mac: exactly one row ends with 'USB link only', and it is the peer's")
+    func peerMacRowGetsTheSuffix() throws {
+        let peer = appleUSB2Root(productID: 0x7307, productName: "Macbook Air")
+        let other = device(id: 21, locationID: 0x0120_0000, name: "Keyboard", speedRaw: 1)
+        let rows = ConnectedDeviceTree.rows(
+            devices: [peer, other],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot()],
+            displayPorts: [],
+            cioCapability: hostToHostCIO()
+        )
+        let suffixed = rows.filter { $0.label.hasSuffix("\u{00B7} USB link only") }
+        try #require(suffixed.count == 1, "got: \(rows.map(\.label))")
+        #expect(suffixed[0].device?.device.id == peer.id)
+        #expect(suffixed[0].label.hasPrefix("Macbook Air"))
+        // Depth and the node survive the relabel.
+        let plain = ConnectedDeviceTree.rows(
+            devices: [peer, other], port: makePort(),
+            thunderboltSwitches: [hostRoot()], displayPorts: []
+        )
+        let plainPeer = try #require(plain.first { $0.device?.device.id == peer.id })
+        #expect(suffixed[0].depth == plainPeer.depth)
+        #expect(suffixed[0].device == plainPeer.device)
+    }
+
+    @Test("No CIO capability passed: no suffix")
+    func noCIONoSuffix() {
+        let peer = appleUSB2Root(productID: 0x7307, productName: "Macbook Air")
+        let rows = ConnectedDeviceTree.rows(
+            devices: [peer],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot()],
+            displayPorts: []
+        )
+        #expect(!rows.contains { $0.label.contains("USB link only") }, "got: \(rows.map(\.label))")
+    }
+
+    @Test("Vision Pro shares the CIO signature: no suffix")
+    func visionProNoSuffix() {
+        let visionPro = appleUSB2Root(productID: 0x12B1, productName: "Vision Pro")
+        let rows = ConnectedDeviceTree.rows(
+            devices: [visionPro],
+            port: makePort(),
+            thunderboltSwitches: [hostRoot()],
+            displayPorts: [],
+            cioCapability: hostToHostCIO()
+        )
+        #expect(!rows.contains { $0.label.contains("USB link only") }, "got: \(rows.map(\.label))")
+    }
+}
+
+/// Corpus-replay sweep: with no Thunderbolt switches, `ConnectedDeviceTree`
+/// must reproduce the USB tree exactly as `USBDeviceNode` builds it, for
+/// every real device topology in the corpus. This pins the "plain tree,
+/// unchanged" contract against real machines, not just the two-device
+/// fixture above. The dock-present path can't be corpus-replayed (no
+/// test-kit probe captures IOThunderboltSwitch dumps); it is covered by the
+/// fixture tests.
+@Suite("ConnectedDeviceTree: corpus sweep")
+struct ConnectedDeviceTreeCorpusTests {
+
+    private static let probeRoot: URL = {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()   // WhatCableCoreTests
+            .deletingLastPathComponent()   // Tests
+            .deletingLastPathComponent()   // repo root
+            .appendingPathComponent("research/customer-probes")
+    }()
+
+    // Probe-38 parsing: deliberate duplicate of the parser in
+    // TunnelledDeviceGroupingCorpusTests (same target; Swift `private` is
+    // file-scoped, and these sweeps are kept self-contained on purpose).
+    private static func parseProbe38(_ text: String) -> [USBDevice] {
+        text.components(separatedBy: "--- Device[").dropFirst().compactMap { block in
+            func value(_ key: String) -> String? {
+                for line in block.split(separator: "\n") {
+                    let trimmed = line.trimmingCharacters(in: .whitespaces)
+                    guard trimmed.hasPrefix(key),
+                          trimmed.dropFirst(key.count).first == " " || trimmed.dropFirst(key.count).first == "=",
+                          let eq = trimmed.firstIndex(of: "=")
+                    else { continue }
+                    return trimmed[trimmed.index(after: eq)...]
+                        .trimmingCharacters(in: .whitespaces)
+                        .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+                }
+                return nil
+            }
+            func hex(_ key: String) -> UInt64? {
+                guard var raw = value(key) else { return nil }
+                if raw.hasPrefix("0x") || raw.hasPrefix("0X") { raw = String(raw.dropFirst(2)) }
+                return UInt64(raw, radix: 16)
+            }
+            guard let loc = hex("locationID").map({ UInt32(truncatingIfNeeded: $0) }) else { return nil }
+            return USBDevice(
+                id: UInt64(loc),
+                locationID: loc,
+                vendorID: hex("idVendor").map { UInt16(truncatingIfNeeded: $0) } ?? 0,
+                productID: hex("idProduct").map { UInt16(truncatingIfNeeded: $0) } ?? 0,
+                vendorName: value("USB Vendor Name"),
+                productName: value("USB Product Name"),
+                serialNumber: nil,
+                usbVersion: nil,
+                speedRaw: value("Device Speed").flatMap { UInt8($0) },
+                busPowerMA: nil,
+                currentMA: nil,
+                // Upper byte of the locationID is the USB controller index,
+                // exactly how USBWatcher derives it live. Without this every
+                // corpus device would have a nil busIndex, grouping would be
+                // suppressed on every folder, and the sweep would silently
+                // stop covering the grouping path.
+                busIndex: Int(loc >> 24),
+                deviceClass: value("bDeviceClass").flatMap { UInt8($0) },
+                rawProperties: [:]
+            )
+        }
+    }
+
+    private static func port() -> AppleHPMInterface {
+        AppleHPMInterface(
+            id: 1, serviceName: "Port-USB-C@1",
+            className: "AppleHPMInterfaceType10",
+            portDescription: nil, portTypeDescription: "USB-C", portNumber: 1,
+            connectionActive: true, activeCable: nil, opticalCable: nil,
+            usbActive: nil, superSpeedActive: nil, usbModeType: nil,
+            usbConnectString: nil,
+            transportsSupported: ["CC", "USB2", "USB3", "CIO", "DisplayPort"],
+            transportsActive: ["CC", "USB3"], transportsProvisioned: [],
+            plugOrientation: nil, plugEventCount: nil, connectionCount: nil,
+            overcurrentCount: nil, pinConfiguration: [:], powerCurrentLimits: [],
+            firmwareVersion: nil, bootFlagsHex: nil, rawProperties: [:]
+        )
+    }
+
+    @Test("No-TB path reproduces USBDeviceNode's tree on every corpus topology")
+    func plainTreeMatchesCorpusTopologies() throws {
+        let folders = (try? FileManager.default.contentsOfDirectory(atPath: Self.probeRoot.path))?.sorted() ?? []
+        var swept = 0
+        var devicesSeen = 0
+        var withBusIndex = 0
+        var grouped = 0
+        for folder in folders {
+            let url = Self.probeRoot.appendingPathComponent(folder).appendingPathComponent("38_usb_device_tree.json")
+            guard FileManager.default.fileExists(atPath: url.path),
+                  let data = try? Data(contentsOf: url),
+                  let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let text = root["output"] as? String
+            else { continue }
+            let devices = Self.parseProbe38(text)
+            guard !devices.isEmpty else { continue }
+            swept += 1
+            devicesSeen += devices.count
+
+            let rows = ConnectedDeviceTree.rows(
+                devices: devices, port: Self.port(),
+                thunderboltSwitches: [], displayPorts: []
+            )
+            if devices.allSatisfy({ $0.busIndex != nil }) { withBusIndex += 1 }
+            let expected = Self.expectedRows(devices)
+            if expected.contains(where: { $0.depth == 0 && $0.label.hasPrefix("USB bus") }) { grouped += 1 }
+
+            // Validates that ConnectedDeviceTree reproduces the expected tree on
+            // every real topology (same devices, order, depth, routing, and bus
+            // grouping) against an INDEPENDENT reimplementation of both rules
+            // (`expectedRows` / `referenceName` below), never against the
+            // production properties themselves. Building the expectation from
+            // `displayName` or `groupedByBus` would be circular: a regression
+            // would change both sides and the sweep would still pass. Per the
+            // project's "a check that reads the same source as the thing it
+            // checks is not a check" rule.
+            try #require(rows.count == expected.count, "\(folder): row count diverged from the expected tree")
+            for (row, want) in zip(rows, expected) {
+                #expect(row.label == want.label,
+                    "\(folder): row diverged from the canonical rendering: \(row.label)")
+                #expect(row.depth == want.depth, "\(folder): wrong depth for \(row.label)")
+                // Device identity is asserted separately rather than folded
+                // into a Row comparison, so that a row carrying the wrong
+                // node (or none) fails here on its own terms. Bus headers must
+                // carry no node at all.
+                #expect(row.device?.id == want.deviceID,
+                    "\(folder): wrong device attached to \(row.label)")
+            }
+        }
+        // Fixture floor: at least the tracked probe-38 replay fixture must be
+        // present even on a fresh clone; a full on-disk corpus sweeps far more.
+        // If this fires at 0, the sweep is vacuous, not passing.
+        #expect(swept >= 1, "Sweep ran on zero folders; corpus probes missing")
+        #expect(devicesSeen > 0)
+        // Non-vacuity floors for the bus grouping specifically. The parser
+        // derives busIndex from the locationID, so every corpus device has one;
+        // without these, a parser that silently stopped setting busIndex would
+        // send every folder down the ungrouped path and the sweep would still
+        // pass while testing nothing about grouping. Real multi-controller
+        // machines exist in the corpus, so `grouped` must not be zero either.
+        if swept > 1 {
+            #expect(withBusIndex == swept, "every corpus folder should carry a bus index")
+            #expect(grouped > 0, "no corpus machine exercised the bus grouping path")
+        }
+    }
+
+    /// Independent reimplementation of the rows `ConnectedDeviceTree.rows`
+    /// should produce for the no-Thunderbolt path, covering both the bus
+    /// grouping rule and the naming rule. Deliberately does not call
+    /// `USBDeviceNode.groupedByBus` or `USBDevice.displayName`; it re-derives
+    /// both so a regression in either diverges here on real corpus data.
+    ///
+    /// The grouping rule restated: group the top-level devices under one header
+    /// per USB controller, but only when every device in the tree has a readable
+    /// bus index and the top-level devices span more than one controller. A lone
+    /// header adds indentation and no information; a partial grouping would
+    /// imply a device sits on a controller nothing established.
+    private static func expectedRows(_ devices: [USBDevice]) -> [(label: String, depth: Int, deviceID: UInt64?)] {
+        let tree = USBDeviceNode.buildTree(from: devices)
+        func label(_ node: USBDeviceNode) -> String {
+            let name = referenceName(product: node.device.productName, vendor: node.device.vendorName)
+            return "\(name) - \(node.device.speedLabel)"
+        }
+
+        var busOrder: [Int] = []
+        for root in tree {
+            guard let bus = root.device.busIndex else { continue }
+            if !busOrder.contains(bus) { busOrder.append(bus) }
+        }
+        let everyDeviceHasABus = USBDeviceNode.flatten(tree).allSatisfy { $0.device.busIndex != nil }
+
+        guard everyDeviceHasABus, busOrder.count > 1 else {
+            return USBDeviceNode.flatten(tree).map { (label: label($0), depth: $0.depth, deviceID: $0.id) }
+        }
+
+        var out: [(label: String, depth: Int, deviceID: UInt64?)] = []
+        for bus in busOrder {
+            let word = String(localized: "USB bus", bundle: _coreLocalizedBundle)
+            // A bus header is not a device, so it must carry no node.
+            out.append((label: "\(word) \(String(format: "0x%02X", bus))", depth: 0, deviceID: nil))
+            for root in tree where root.device.busIndex == bus {
+                for node in USBDeviceNode.flatten([root]) {
+                    out.append((label: label(node), depth: node.depth + 1, deviceID: node.id))
+                }
+            }
+        }
+        return out
+    }
+
+    /// Independent reimplementation of `USBDevice.displayName`'s naming rule,
+    /// kept deliberately separate from production so the corpus sweep above is a
+    /// real cross-check, not a tautology. Same rule (append the maker unless the
+    /// product already names its brand as a whole word), written as different
+    /// code. If you change the naming rule, change it in both places on purpose.
+    ///
+    /// "Independent" means re-derived here rather than calling the property
+    /// under test. It deliberately does NOT extend to the case-folding
+    /// primitive. An earlier version of this oracle used `lowercased()` while
+    /// production uses `compare(options: .caseInsensitive)`, and those are two
+    /// different rules rather than one rule written twice: they agree on ASCII
+    /// and diverge on real Unicode (ICU folds German "STRASSE" to match
+    /// "Straße", the "ﬁ" ligature to "fi", and the micro sign to Greek mu;
+    /// Swift's `lowercased()` does none of those). A device reporting any of
+    /// those would have failed the sweep against a naming rule that was working
+    /// correctly. Same fold, different code.
+    private static func referenceName(product rawProduct: String?, vendor rawVendor: String?) -> String {
+        let product = (rawProduct ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !product.isEmpty else {
+            return String(localized: "Unknown", bundle: _coreLocalizedBundle)
+        }
+        let vendor = (rawVendor ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !vendor.isEmpty else { return product }
+        let boundary: (Character) -> Bool = { !$0.isLetter && !$0.isNumber }
+        guard let brand = vendor.split(whereSeparator: boundary).first, brand.count >= 2 else {
+            return "\(product) (\(vendor))"
+        }
+        let namesBrand = product
+            .split(whereSeparator: boundary)
+            .first { $0.compare(brand, options: .caseInsensitive) == .orderedSame } != nil
+        return namesBrand ? product : "\(product) (\(vendor))"
+    }
+}

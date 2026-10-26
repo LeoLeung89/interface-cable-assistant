@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>via %lld hubs</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>few</key>
+			<string>przez %lld koncentratory</string>
+			<key>many</key>
+			<string>przez %lld koncentratorów</string>
+			<key>one</key>
+			<string>przez %lld koncentrator</string>
+			<key>other</key>
+			<string>przez %lld koncentratora</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

@@ -1,0 +1,667 @@
+"0.2-0.5 mW" = "0.2-0.5 mW";
+"0.5-1 mW" = "0.5-1 mW";
+"1-5 mW" = "1-5 mW";
+"3 A" = "3 A";
+"5 A" = "5 A";
+"5-10 mW" = "5-10 mW";
+"50-200 µW" = "50-200 µW";
+"< 50 µW" = "< 50 µW";
+"> 10 mW" = "> 10 mW";
+"Active %@ cable, %@" = "アクティブ%1$@ケーブル、%2$@";
+"Active cable" = "アクティブケーブル";
+"Active cable (contains signal-conditioning electronics)" = "アクティブケーブル（信号調整電子回路を内蔵）";
+"Active cable (VDO 2):" = "アクティブケーブル (VDO 2):";
+"Alternate Mode Adapter" = "オルタネートモードアダプタ";
+"Both the charger and cable can do more, but the Mac is currently asking for less. This is normal once the battery is mostly full, or when the system is idle." = "充電器とケーブルはより高い性能を持っていますが、Macは現在それ以下を要求しています。バッテリーがほぼ満充電の場合やシステムがアイドル状態の場合は正常です。";
+"Cable does not advertise an e-marker (basic cable)" = "ケーブルはe-markerを持っていません（ベーシックケーブル）";
+"Cable is limiting charging speed" = "ケーブルが充電速度を制限しています";
+"Cable identified as %@" = "ケーブルは%@と識別されました";
+"This e-marker is used in: %@" = "このe-markerは次で使用されています: %@";
+"Cable rated for %@ at up to %lldV (~%lldW)" = "ケーブル定格: %1$@、最大%2$lld V（約%3$lld W）";
+"Cable rated to %lldV / %@, delivers up to %lldW (USB-PD caps at 48V)" = "Cable rated to %1$lldV / %2$@, delivers up to %3$lldW (USB-PD caps at 48V)";
+"Cable speed: %@" = "ケーブル速度: %@";
+"Cable trust signals:" = "ケーブル信頼性シグナル:";
+"Carrying DisplayPort video" = "DisplayPort映像を伝送中";
+"Carrying both data and DisplayPort video." = "データとDisplayPort映像を同時に伝送中。";
+"Charger advertises up to %lldW" = "充電器は最大%lld Wを通知";
+"Charger: %@" = "充電器: %@";
+"Charger: %@ %@" = "充電器: %1$@ %2$@";
+"Charger identified as %@" = "充電器は %@ として認識されました";
+"Charger and cable are well-matched. The Mac draws what it needs moment to moment, up to this limit." = "充電器とケーブルは適切に組み合わされています。Macはこの上限まで、その時々の必要に応じて電力を引き出します。";
+"Charger can deliver up to %lldW, but this cable is only rated to carry %lldW. Replace the cable to charge faster." = "充電器は最大%1$lld Wを出力できますが、このケーブルは%2$lld Wまでの定格です。より速く充電するにはケーブルを交換してください。";
+"Charging" = "充電";
+"Charging at %lldW (charger can do up to %lldW)" = "%1$lld Wで充電中（充電器の最大出力: %2$lld W）";
+"Charging only" = "充電のみ";
+"Charging well · up to %lldW" = "良好に充電中 · 最大 %lld W";
+"Charging · %lldW charger" = "充電中 · %lld W充電器";
+"System reports charger at %lldW" = "システムは%lld W充電器と報告";
+"Charging: " = "充電: ";
+"Connected devices:" = "接続されたデバイス:";
+"Connected" = "接続済み";
+"Connected device: %@, %@" = "接続デバイス: %1$@、%2$@";
+"Connected to %@" = "%@に接続";
+"Connected via %lld hops: %@" = "%1$lldホップ経由で接続: %2$@";
+"Connected." = "接続済み。";
+"Copper" = "銅線";
+"Couldn't determine cable type from this port." = "このポートからケーブルの種類を判別できませんでした。";
+"Currently negotiated: %@ @ %@ (%@)" = "現在のネゴシエーション: %1$@ @ %2$@ (%3$@)";
+"Display connected" = "ディスプレイ接続";
+"Display connected · %lldW charger" = "ディスプレイ接続 · %lld W充電器";
+"Display connected, data blocked" = "ディスプレイ接続、データはブロック中";
+"Display connected, data blocked · %lldW charger" = "ディスプレイ接続、データはブロック中 · %lld W充電器";
+"DisplayPort video over USB-C Alt Mode." = "USB-Cオルタネートモード経由のDisplayPort映像。";
+"E-marker claims EPR support but reports only 20V max VBUS" = "e-markerはEPR対応を通知していますがVBUS最大20 Vのみを報告";
+"E-marker reports no vendor identity" = "e-markerがベンダーIDを報告していません";
+"E-marker uses a reserved cable-latency value" = "e-markerが予約済みのケーブルレイテンシ値を使用";
+"E-marker uses a reserved current-rating value" = "e-markerが予約済みの電流定格値を使用";
+"E-marker uses a reserved data-speed value" = "e-markerが予約済みのデータ速度値を使用";
+"E-marker uses an invalid VDO version" = "e-markerが無効なVDOバージョンを使用";
+"E-marker uses an invalid cable-termination value" = "e-markerが無効なケーブル終端値を使用";
+"Last leg drops from %@ to %@" = "最終区間で%1$@から%2$@に低下";
+"This cable's e-marker doesn't report a vendor ID, which is common on genuine cables. It's only worth a closer look if the cable's other capability data is also inconsistent." = "このケーブルのe-markerはベンダーIDを報告していませんが、これは正規のケーブルでもよくあることです。ケーブルのその他の能力データにも矛盾がある場合にのみ、詳しく確認する価値があります。";
+"Linked at %@" = "%@でリンク";
+"Negotiation hasn't completed yet." = "ネゴシエーションがまだ完了していません。";
+"Charger on standby" = "充電器は待機中";
+"Another charger is powering the Mac right now. macOS draws from one charger at a time, so this charger stays on standby until the other is unplugged." = "現在は別の充電器がMacに給電しています。macOSは一度に1つの充電器からのみ給電するため、もう一方を抜くまでこの充電器は待機状態になります。";
+"No USB-C / MagSafe ports were found on this Mac." = "このMacにUSB-C / MagSafeポートが見つかりませんでした。";
+"Nothing connected" = "未接続";
+"Only USB 2.0 is active. If you expected high speed, the cable may not support it." = "USB 2.0のみがアクティブです。高速を期待していた場合、ケーブルが対応していない可能性があります。";
+"Optical" = "光学";
+"Optical cable" = "光ケーブル";
+"Optical cable, not electrically isolated (carries copper alongside the fibres)" = "光ケーブル、電気的に非絶縁（ファイバーと共に銅線を伝送）";
+"Optical fibres are electrically isolated end-to-end" = "光ファイバーはエンドツーエンドで電気的に絶縁";
+"Other" = "その他";
+"Passive cable" = "パッシブケーブル";
+"Plug a cable into %@ to see what it can do." = "%@にケーブルを接続して性能を確認してください。";
+"Power is flowing but no data link is established." = "給電中ですがデータリンクは確立されていません。";
+"Power is flowing. No data connection." = "給電中。データ接続なし。";
+"Raw IOKit properties:" = "IOKitプロパティ（生データ）:";
+"Re-driver" = "リドライバー";
+"Re-timer" = "リタイマー";
+"Reserved" = "予約済み";
+"Slow USB device or charge-only cable" = "低速USBデバイスまたは充電専用ケーブル";
+"Slow USB device or charge-only cable · %lldW charger" = "低速USBデバイスまたは充電専用ケーブル · %lld W充電器";
+"SuperSpeed USB (5 Gbps or faster)" = "SuperSpeed USB（5 Gbps以上）";
+"SuperSpeed data link is active." = "SuperSpeedデータリンクがアクティブ。";
+"Supports %@." = "%@に対応。";
+"The cable's e-marker advertises EPR Capable, but reports its Max VBUS Voltage as 20V. EPR operation needs 48V or 50V VBUS, so the two fields contradict each other." = "ケーブルのe-markerはEPR対応を通知していますが、最大VBUS電圧は20 Vと報告しています。EPR動作には48 Vまたは50 VのVBUSが必要なため、2つのフィールドが矛盾しています。";
+"The cable's e-marker reports VDO version %lld, which is reserved or marked Invalid by the USB-PD spec for this cable type. Real e-marker silicon should not emit Invalid version values." = "ケーブルのe-markerはVDOバージョン%lldを報告していますが、このケーブルタイプのUSB-PD仕様では予約済みまたは無効とされています。正規のe-markerシリコンは無効なバージョン値を出力すべきではありません。";
+"The cable's e-marker reports cable termination %lld, which the USB-PD spec marks as Invalid for this cable type. Mis-flashed e-markers commonly disagree with the cable's actual physical wiring here." = "ケーブルのe-markerは終端値%lldを報告していますが、USB-PD仕様ではこのケーブルタイプに対して無効とされています。誤って書き込まれたe-markerは、実際の物理配線と一致しないことがよくあります。";
+"The cable's e-marker reports cable-latency value %lld, which is reserved by the USB-PD spec for this cable type. Real e-marker chips should not emit reserved values." = "ケーブルのe-markerはレイテンシ値%lldを報告していますが、このケーブルタイプのUSB-PD仕様では予約済みです。正規のe-markerチップは予約済みの値を出力すべきではありません。";
+"The cable's e-marker reports current value %lld, which is reserved by the USB-PD spec. Real e-marker chips should not emit reserved values." = "ケーブルのe-markerは電流値%lldを報告していますが、USB-PD仕様では予約済みです。正規のe-markerチップは予約済みの値を出力すべきではありません。";
+"The cable's e-marker reports speed value %lld, which is reserved by the USB-PD spec. Real e-marker chips should not emit reserved values." = "ケーブルのe-markerは速度値%lldを報告していますが、USB-PD仕様では予約済みです。正規のe-markerチップは予約済みの値を出力すべきではありません。";
+"The cable's e-marker reports vendor %@, which isn't in our bundled USB-IF list. The number could be unassigned, copied, or assigned after the bundled list was generated. On its own this isn't proof of a problem, but on a clone cable it often appears alongside other inconsistencies." = "ケーブルのe-markerはベンダー%@を報告していますが、同梱のUSB-IFリストにありません。この番号は未割当、コピー、またはリスト生成後に割り当てられた可能性があります。単独では問題の証拠にはなりませんが、模倣ケーブルでは他の不整合と共に見られることが多いです。";
+"Thunderbolt / USB4" = "Thunderbolt / USB4";
+"Thunderbolt / USB4 link active" = "Thunderbolt / USB4リンクアクティブ";
+"Thunderbolt / USB4 · %lldW charger" = "Thunderbolt / USB4 · %lld W充電器";
+"USB 2.0 (480 Mbps)" = "USB 2.0 (480 Mbps)";
+"USB 2.0 only (480 Mbps), no high-speed data" = "USB 2.0のみ（480 Mbps）、高速データなし";
+"USB 3.2 Gen 1 (5 Gbps)" = "USB 3.2 Gen 1 (5 Gbps)";
+"USB 3.2 Gen 2 (10 Gbps)" = "USB 3.2 Gen 2 (10 Gbps)";
+"USB Hub" = "USBハブ";
+"USB Peripheral" = "USB周辺機器";
+"USB default" = "USBデフォルト";
+"USB device" = "USBデバイス";
+"USB device · %lldW charger" = "USBデバイス · %lld W充電器";
+"USB-C with video" = "USB-C 映像出力付き";
+"USB-C with video · %lldW charger" = "USB-C 映像出力付き · %lld W充電器";
+"USB4 Gen 3 (20 / 40 Gbps)" = "USB4 Gen 3 (20 / 40 Gbps)";
+"USB4 Gen 4 (80 Gbps)" = "USB4 Gen 4 (80 Gbps)";
+"Unknown device" = "不明なデバイス";
+"Unknown generation (raw speed code 0x%@)" = "不明な世代（速度コード 0x%@）";
+"Unknown generation (raw speed code 0x2, inferred TB5)" = "不明な世代（速度コード 0x2、TB5と推定）";
+"Unspecified" = "未指定";
+"Up to %lld Gb/s %@" = "最大%1$lld Gb/s %2$@";
+"Up to %lld Gb/s out, %lld Gb/s in" = "最大%1$lld Gb/s 送信、%2$lld Gb/s 受信";
+"VCONN-powered device" = "VCONN給電デバイス";
+"Vendor ID isn't in USB-IF's published list" = "ベンダーIDがUSB-IFの公開リストにありません";
+"What can this USB-C cable actually do?" = "このUSB-Cケーブルで実際に何ができる？";
+" · %lldW cable" = " · %lld Wケーブル";
+"high-speed data" = "高速データ";
+"smart cable" = "スマートケーブル";
+"video" = "映像";
+
+/* DisplayPort lane labels, connected-device variants, pin-diagram Data label */
+"2 DP lanes + USB3 data" = "2 本の DP レーン + USB3 データ";
+"4 DP lanes (no USB3 alongside video)" = "4 本の DP レーン (映像と並行する USB3 なし)";
+"Carrying DisplayPort video (%@)" = "DisplayPort映像を伝送中 (%@)";
+"Connected device: %@" = "接続デバイス: %@";
+"Connected device: another Mac" = "接続デバイス: 別のMac";
+"USB link only" = "USBリンクのみ";
+"Other USB devices on this port" = "このポートのその他のUSBデバイス";
+"Connected device: %@, %@ (%@)" = "接続デバイス: %1$@、%2$@ (%3$@)";
+"Data" = "データ";
+"DisplayPort Alt Mode" = "DisplayPort オルタネートモード";
+
+
+/* Cable speed / charger status strings (previously missing keys) */
+"20 Gbps capable" = "20 Gbps対応";
+"40 Gbps capable" = "40 Gbps対応";
+"80 Gbps capable" = "80 Gbps対応";
+"Charger connected. Battery is full, so the Mac isn't drawing power." = "充電器が接続されています。バッテリーが満充電のため、Macは電力を消費していません。";
+"Per-port negotiation data is not available. Wattage is from the system-wide adapter reading." = "ポートごとのネゴシエーションデータは利用できません。ワット数はシステム全体のアダプタ読み取り値です。";
+"Plugged in · battery full" = "接続済み · バッテリー満充電";
+"Try a higher-wattage charger to identify the cable." = "より高出力の充電器でケーブルを識別してください。";
+"No data link or charger detected on this port." = "このポートでデータ接続も充電器も検出されませんでした。";
+"USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)" = "USB4 Gen 3 (40 Gbps、Thunderbolt 4クラス)";
+"USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)" = "USB4 Gen 4 (80 Gbps、Thunderbolt 5クラス)";
+
+
+/* Pro plugin UI strings */
+"%@ (spec, not measured)" = "%@（仕様値、実測値ではありません）";
+"%@ Diagnostics" = "%@ 診断";
+"%lld (%lld failed)" = "%1$lld（%2$lld失敗）";
+"%lld of %lld devices used" = "%lld/%lldデバイス使用中";
+"A cable was physically connected or disconnected from the port." = "ケーブルがポートに物理的に接続または切断されました。";
+"Activate" = "有効化";
+"Active Cable" = "アクティブケーブル";
+"Active RDO" = "アクティブRDO";
+"Attach count" = "接続回数";
+"Buy a licence at whatcable.uk" = "whatcable.ukでライセンスを購入";
+"CC Advertisement" = "CCアドバタイズ";
+"CC line voltage" = "CCライン電圧";
+"Cable Identity" = "ケーブルID";
+"Cancel" = "キャンセル";
+"Capability mismatch" = "性能の不一致";
+"Connect a USB-C power source to view live telemetry." = "USB-C電源を接続してリアルタイムテレメトリを表示します。";
+"Connector" = "コネクタ";
+"Current" = "電流";
+"Current (A)" = "電流 (A)";
+"Data role swaps" = "データロール交換";
+"Deactivate" = "無効化";
+"Deactivate Licence" = "ライセンスを無効化";
+"Deactivate WhatCable Pro?" = "WhatCable Proを無効化しますか？";
+"Default USB (500/900 mA)" = "USBデフォルト (500/900 mA)";
+"Detach count" = "切断回数";
+"Device Identity" = "デバイスID";
+"Devices" = "デバイス";
+"Diagnostics" = "診断";
+"Disabled" = "無効";
+"Discover Identity response received on SOP channel. Carries the connected partner's VID, PID, and capability VDOs (not the cable; cable identity uses SOP')." = "SOPチャネルでDiscover Identity応答を受信。接続先のVID、PID、性能VDOを含みます（ケーブルではなく、ケーブルIDはSOP'を使用）。";
+"Display Output" = "映像出力";
+"Enabled" = "有効";
+"Enter your licence key to unlock pro features." = "ライセンスキーを入力してPro機能をロック解除してください。";
+"Measuring while your Mac charges…" = "Macの充電中に測定しています…";
+"Waiting for charging load to vary. Use your Mac normally to finish the reading." = "充電負荷の変化を待っています。測定を完了するには、Macを通常どおり使用してください。";
+"Event Log" = "イベントログ";
+"FET enable failures" = "FET有効化失敗";
+"FET status" = "FETステータス";
+"Hard reset count" = "ハードリセット回数";
+"Could not load the device list. Try again later." = "デバイスリストを読み込めませんでした。後でもう一度お試しください。";
+"Could not reach the licence server. Check your internet connection and try again." = "ライセンスサーバーに接続できません。インターネット接続を確認して再試行してください。";
+"I2C error count" = "I2Cエラー回数";
+"Inactive" = "非アクティブ";
+"Invalid licence key. Check the key and try again." = "ライセンスキーが無効です。キーを確認して再試行してください。";
+"Lanes" = "レーン";
+"Licence…" = "ライセンス…";
+"Licensed to: %@" = "ライセンス所有者: %@";
+"Link rate" = "リンクレート";
+"Liquid Detection" = "液体検出";
+"Liquid detected" = "液体検出";
+"Live" = "ライブ";
+"Loading devices…" = "デバイスを読み込み中…";
+"MagSafe 3" = "MagSafe 3";
+"MagSafe Charger" = "MagSafe充電器";
+"Manufacturer" = "製造元";
+"Requested max operating current" = "要求最大動作電流";
+"Requested max operating power" = "Requested max operating power";
+"Max power" = "最大電力";
+"Mitigations" = "緩和策";
+"Mode" = "モード";
+"Monitor" = "モニター";
+"Native" = "ネイティブ";
+"Port maximum. Live per-port metering is not available on this hardware." = "ポート最大値。このハードウェアではポートごとのリアルタイム計測は利用できません。";
+"No" = "いいえ";
+"No PD contract data" = "PDコントラクトデータなし";
+"No PD events" = "PDイベントなし";
+"No PDOs advertised" = "PDO通知なし";
+"No Power Data" = "電力データなし";
+"No SOP identity data" = "SOP IDデータなし";
+"No cable connected." = "ケーブル未接続。";
+"No cable identity data" = "ケーブルIDデータなし";
+"No devices registered." = "登録済みのデバイスはありません。";
+"No health counters" = "ヘルスカウンターなし";
+"No liquid detection data" = "液体検出データなし";
+"None" = "なし";
+"Open Pro diagnostics for this port" = "このポートのPro診断を開く";
+"Requested operating current" = "要求動作電流";
+"Requested operating power" = "Requested operating power";
+"Requested output voltage" = "Requested output voltage";
+"PD spec revision" = "PD仕様リビジョン";
+"PD state" = "PD状態";
+"PDO position" = "PDOポジション";
+"Partner device identity arrived via SOP (the connected device, not the cable)." = "SOP経由でパートナーデバイスIDを受信（接続デバイス、ケーブルではありません）。";
+"Passive Cable" = "パッシブケーブル";
+"Pin Diagram" = "ピン配置図";
+"Plug: %@" = "プラグ: %@";
+"Port Health" = "ポートヘルス";
+"Power" = "電力";
+"Power (W)" = "電力 (W)";
+"Power Contract" = "電力コントラクト";
+"Power Monitor" = "電力モニター";
+"Power role swaps" = "電力ロール交換";
+"Pro features unlocked." = "Pro機能がロック解除されました。";
+"Pro features will be locked until you enter your key again." = "キーを再入力するまでPro機能はロックされます。";
+"Pro required" = "Pro必須";
+"Product ID" = "プロダクトID";
+"Product Type" = "プロダクトタイプ";
+"Raw VDOs" = "VDO（生データ）";
+"Raw cable VDOs" = "ケーブルVDO（生データ）";
+"Refresh" = "更新";
+"Registered %@" = "登録: %@";
+"Registration date unknown" = "登録日不明";
+"Remove" = "削除";
+"Remove %@ from your licence?" = "%@をライセンスから削除しますか？";
+"Removing this Mac will lock Pro here until you activate again." = "このMacを削除すると、再度アクティベートするまでここでProがロックされます。";
+"Rp current level" = "Rp電流レベル";
+"Rp resistor" = "Rp抵抗";
+"Short detect count" = "短絡検出回数";
+"Signal Routing" = "信号ルーティング";
+"Source PDOs" = "ソースPDO";
+"Source capabilities received" = "ソース性能受信";
+"State" = "状態";
+"System Power Input" = "システム電源入力";
+"That Mac will lose Pro until it activates again." = "そのMacは再度アクティベートするまでProを失います。";
+"The charger or power source advertised what voltages and currents it can provide." = "充電器または電源が提供可能な電圧と電流を通知しました。";
+"This Mac's slot could not be released on the licence server, so it may still be held. Free it from Settings on another Mac, or contact support." = "このMacの枠をライセンスサーバーで解放できなかったため、まだ使用中の可能性があります。別のMacの設定から解放するか、サポートにお問い合わせください。";
+"This Mac" = "このMac";
+"Tunneled" = "トンネル";
+"UVDM discovery started. The controller is probing for vendor-specific capabilities on the cable or partner." = "UVDMディスカバリー開始。コントローラーがケーブルまたはパートナーのベンダー固有性能を探索中です。";
+"UVDM enumeration" = "UVDM列挙";
+"UVDM status update" = "UVDMステータス更新";
+"USB-C Charger" = "USB-C充電器";
+"Unknown" = "不明";
+"Unknown Device" = "不明なデバイス";
+"Unknown Mac" = "不明なMac";
+"Unknown event %@" = "不明なイベント %@";
+"Unregistered cable (no e-marker)" = "未登録ケーブル（e-markerなし）";
+"Unstructured VDM enumeration began (discovering vendor-specific capabilities)." = "非構造化VDM列挙を開始（ベンダー固有性能を検出中）。";
+"Unstructured VDM status changed (vendor-specific messaging like Alt Mode setup)." = "非構造化VDMステータスが変更（オルタネートモード設定などのベンダー固有メッセージング）。";
+"VDO fail count" = "VDO失敗回数";
+"Vendor ID" = "ベンダーID";
+"Vendor-specific unstructured VDM state changed. Used by Apple for custom Alt Mode setup and Thunderbolt negotiation." = "ベンダー固有の非構造化VDM状態が変更。Appleがカスタムオルタネートモード設定とThunderboltネゴシエーションに使用。";
+"Voltage" = "電圧";
+"Voltage (V)" = "電圧 (V)";
+"WhatCable Pro" = "WhatCable Pro";
+"Year of manufacture" = "製造年";
+"Yes" = "はい";
+"Charging resistance" = "充電抵抗";
+"experimental" = "実験的";
+"Resistance of the whole charging path: cable, plugs and charger together. Lower is better. To judge a cable, compare cables on the same charger and port." = "充電経路全体の抵抗値です:ケーブル、コネクタ、充電器を合わせたもの。低いほど良好です。ケーブルを判断するには、同じ充電器と同じポートでケーブルを比較してください。";
+
+/* Pro plugin format strings */
+"%@ Port %lld" = "%1$@ ポート%2$lld";
+"APDO, %@ to %@ @ %@, %@ max" = "APDO、%1$@〜%2$@ @ %3$@、最大%4$@";
+"Battery, %@ minimum, %@" = "バッテリー、最低%1$@、%2$@";
+"Battery, %@ to %@, %@" = "Battery, %1$@ to %2$@, %3$@";
+"EPR AVS, %@ to %@, %@" = "EPR AVS, %1$@ to %2$@, %3$@";
+"Fixed, %@ @ %@, %@" = "固定、%1$@ @ %2$@、%3$@";
+"Port" = "ポート";
+"Rate %lld" = "レート%lld";
+"Type %lld" = "タイプ%lld";
+"Variable, %@ minimum @ %@, %@ minimum" = "可変、最低%1$@ @ %2$@、最低%3$@";
+"PPS, %@ to %@ @ %@, %@ max" = "PPS, %1$@ to %2$@ @ %3$@, %4$@ max";
+"SPR AVS, %@ at 15V / %@ at 20V" = "SPR AVS, %1$@ at 15V / %2$@ at 20V";
+"Variable, %@ to %@ @ %@" = "Variable, %1$@ to %2$@ @ %3$@";
+
+/* Pro plugin strings missing from prior export */
+"Enter Licence Key…" = "ライセンスキーを入力…";
+"This is the most the charger and your Mac agreed to, not a live reading. Your Mac reports the live figure only as a system total, shown in the System Power Input chart below." = "これは充電器とMacが合意した最大値であり、ライブの測定値ではありません。Macはライブの値をシステム全体の合計としてのみ報告し、下の「システム電源入力」グラフに表示されます。";
+"No power data for this port right now." = "現在このポートの電力データはありません。";
+"Waiting for power telemetry from macOS…" = "macOSから電力データの受信を待機中…";
+"Upgrade to WhatCable Pro" = "WhatCable Proにアップグレード";
+"not reported in this state" = "この状態では報告されません";
+
+/* Widget strings */
+"Cable Status" = "ケーブル状態";
+"No cable data" = "ケーブルデータなし";
+"Open WhatCable to start monitoring." = "WhatCableを開いてモニタリングを開始してください。";
+"See what your USB-C cables can do at a glance." = "USB-Cケーブルの性能をひと目で確認。";
+
+/* Negotiation diagnostics + Pro UX (PR #55). English; non-English to be refined by the community translation flow. */
+"The cable's e-marker and the Thunderbolt controller disagree on its speed. The controller measured a higher, confirmed rate, so that figure is used." = "ケーブルの e-marker と Thunderbolt コントローラーで速度の情報が一致しません。コントローラーはより高い、確認済みの速度を計測したため、その値を使用します。";
+"Running at %@" = "%@ で動作中";
+"There's no cable e-marker or controller data, and no port or device capability to compare against, so we can't tell whether the cable is the limit." = "ケーブルの e-marker もコントローラーデータもなく、比較できるポートやデバイスの性能情報もないため、ケーブルがボトルネックかどうか判断できません。";
+"This cable has no e-marker and no controller data, so we can't tell whether it is the limit." = "このケーブルには e-marker もコントローラーデータもないため、ボトルネックかどうか判断できません。";
+"Running slower than expected (%@)" = "想定より低速で動作中 (%@)";
+"The parts we can see all support %@ or more, but the link came up slower. Reseating the cable or trying another port may help." = "確認できる構成要素はすべて %@ 以上に対応していますが、リンクはより低速で確立されました。ケーブルの抜き挿しや別のポートへの接続をお試しください。";
+"Running at full data speed (%@)" = "フルデータ速度で動作中 (%@)";
+"Nothing is being held back: the parts we can see all support this speed." = "制限なし。確認できる構成要素はすべてこの速度に対応しています。";
+"Linked to another Mac at %@" = "別のMacと%@でリンク";
+"Thunderbolt networking runs over this link. The 480 Mbps USB connection alongside it is normal and does not carry your data." = "Thunderboltネットワークはこのリンク上で動作します。隣にある480 Mbps USB接続は正常であり、データを運ぶものではありません。";
+"Cable is limiting data speed" = "ケーブルがデータ速度を制限しています";
+"The Mac and device can do %@, but the cable only carries %@. A faster cable would unlock full speed." = "Mac とデバイスは %@ に対応していますが、ケーブルは %@ しか転送できません。より高速なケーブルを使うとフルスピードが出ます。";
+"The Mac can do %@, but the cable only carries %@. A faster cable would unlock full speed." = "Mac は %1$@ に対応していますが、ケーブルは %2$@ しか転送できません。より高速なケーブルを使うとフルスピードが出ます。";
+"The device can do %@, but the cable only carries %@. A faster cable would unlock full speed." = "デバイスは %1$@ に対応していますが、ケーブルは %2$@ しか転送できません。より高速なケーブルを使うとフルスピードが出ます。";
+"This Mac port limits data speed" = "このMacのポートがデータ速度を制限しています";
+"The cable and device can do %@, but this port maxes out at %@." = "ケーブルとデバイスは %@ に対応していますが、このポートは最大 %@ までです。";
+"The cable can do %@, but this port maxes out at %@." = "ケーブルは %1$@ に対応していますが、このポートは最大 %2$@ までです。";
+"The device can do %@, but this port maxes out at %@." = "デバイスは %1$@ に対応していますが、このポートは最大 %2$@ までです。";
+"Device runs at %@" = "デバイスは %@ で動作しています";
+"This is the fastest the connected device supports. It is not a cable problem." = "これは接続デバイスの最大速度です。ケーブルの問題ではありません。";
+"Battery full, not charging" = "バッテリー満充電、充電していません";
+"Charger and cable are fine. The Mac will draw up to %lldW when it needs to." = "充電器とケーブルに問題はありません。必要に応じてMacは最大 %lld W を消費します。";
+"Negotiation Diagnostics" = "ネゴシエーション診断";
+"What each link can do, and where the bottleneck is." = "各リンクの性能とボトルネックの場所を表示します。";
+"No Connections" = "接続なし";
+"Plug a cable into a port to see what is limiting it." = "ケーブルをポートに接続すると、制限の原因を確認できます。";
+"Nothing to diagnose on this port yet (no active power or data link)." = "このポートには診断できる情報がありません（電力供給もデータリンクもアクティブではありません）。";
+"Data speed" = "データ速度";
+"Display links are not analysed yet." = "ディスプレイリンクはまだ分析されていません。";
+"Mac port" = "Macのポート";
+"Cable" = "ケーブル";
+"Device" = "デバイス";
+"Negotiated" = "ネゴシエート済み";
+"Charger" = "充電器";
+"AC Power" = "AC電源";
+"bottleneck" = "ボトルネック";
+"Cable signals disagree" = "ケーブルの信号が一致しません";
+"an unknown speed" = "不明な速度";
+"a higher speed" = "より高い速度";
+"The cable's own e-marker reports %@, but the Thunderbolt controller measured it running at %@, faster than the e-marker claims. This can happen with active Thunderbolt cables whose e-marker under-reports (declaring themselves passive at a low speed). The controller's confirmed, higher reading is used above." = "ケーブル自体の e-marker は %1$@ と報告していますが、Thunderbolt コントローラーは e-marker の主張より速い %2$@ で動作していることを計測しました。これは、e-marker が実際より低い速度を報告するアクティブ Thunderbolt ケーブル(低速のパッシブケーブルだと申告している場合)で起こることがあります。上には、コントローラーのより高く確認済みの値が使用されています。";
+/* Pro overview screen + footer pill (Pro funnel). Parity placeholders in English; refine in the community translation flow. */
+"Cable Diagnostics" = "ケーブル診断";
+"Deep per-port pin maps, plug orientation, and protocol detail." = "ポートごとの詳細なピンマップ、プラグの向き、プロトコルの詳細を表示します。";
+"Licence Key" = "ライセンスキー";
+"Live MagSafe pin layout for charging and diagnostics." = "充電と診断のためのMagSafeピン配置をリアルタイム表示します。";
+"Live multi-port power graphs and event history." = "複数ポートの電力グラフとイベント履歴をリアルタイム表示します。";
+"MagSafe pin diagrams" = "MagSafeピン配置図";
+"Manage Licence…" = "ライセンスを管理…";
+"See exactly what each link can do, and where the bottleneck is." = "各リンクの性能とボトルネックの場所を正確に確認できます。";
+"Find the weak link in a connection and keep the evidence: deep diagnostics, live power, cable history. One-off licence, no subscription." = "接続の弱点を見つけ、その証拠を残します。詳細診断、リアルタイム電力、ケーブル履歴。買い切りライセンス、サブスクリプション不要。";
+"Cable says %@, link reads %@" = "ケーブルは %@ を示していますが、リンクの読み取りは %@ です";
+"The cable's e-marker reports %@, but the active link is reading %@. One of those readings is wrong, and without a Thunderbolt controller cross-check we can't tell which. Trying a known-good cable will identify the culprit." = "ケーブルの e-marker は %@ を報告していますが、アクティブなリンクは %@ を示しています。どちらかの読み取りが誤っており、Thunderbolt コントローラーによる照合なしにはどちらかを特定できません。正常なケーブルで試すと原因を絞り込めます。";
+"Data blocked by macOS accessory security" = "macOS アクセサリセキュリティによりデータがブロックされています";
+"The link is capable of %@, but macOS is blocking data until you approve the accessory. Click Allow on the connection prompt, or check System Settings > Privacy & Security > Allow accessories to connect, then replug." = "リンクは %@ に対応していますが、アクセサリを承認するまで macOS がデータをブロックしています。接続プロンプトで「許可」をクリックするか、システム設定 > プライバシーとセキュリティ > アクセサリの接続を許可 を確認してから、再接続してください。";
+
+/* Display dimension. English; non-English to be refined by the community translation flow. */
+"A display is connected but its capabilities aren't readable, so there's nothing to compare the link against." = "ディスプレイは接続されていますが、その性能を読み取れないため、リンクと比較できません。";
+"The link is carrying about %@ (%lld of %lld lanes)." = "リンクは約 %@（%lld/%lld レーン）を転送しています。";
+"display" = "ディスプレイ";
+"Your %@ is connected, but the link rate isn't readable, so there's nothing to compare its capability against." = "%@ は接続されていますが、リンク速度を読み取れないため、性能を比較できません。";
+"Display running at full quality" = "ディスプレイはフル画質で動作中";
+"up to %lldHz" = "最大 %lld Hz";
+"a higher mode than the link is carrying" = "リンクが転送しているモードより高いモード";
+"Video is going through a %@ adapter" = "映像は %@ アダプタを経由しています";
+"Monitor can do more than the link is carrying" = "モニターの性能がリンクの転送量を上回っています";
+"Display Diagnostics" = "ディスプレイ診断";
+"What your monitor can do, and what the link is carrying." = "モニターの性能と、リンクが転送している内容を表示します。";
+"No Displays" = "ディスプレイなし";
+"Connect a monitor over USB-C or Thunderbolt to see what the link is delivering." = "USB-C または Thunderbolt でモニターを接続すると、リンクの状態を確認できます。";
+"%@ port %lld" = "%@ ポート %lld";
+"Display" = "ディスプレイ";
+"Display: %@" = "ディスプレイ: %@";
+"Display: %@ · video output %lld" = "ディスプレイ: %1$@ · 映像出力 %2$lld";
+"%lld × %lld" = "%lld × %lld";
+"native %lldHz" = "ネイティブ %lld Hz";
+"Link carries" = "リンクの転送量";
+"Rate" = "速度";
+"See whether the link is carrying your monitor's full resolution and refresh." = "リンクがモニターのフル解像度とリフレッシュレートを転送しているか確認します。";
+"Display links have their own screen: Display Diagnostics." = "ディスプレイリンクには専用の画面があります: ディスプレイ診断。";
+
+/* Billboard device (display dimension). English; community-refined. */
+"Billboard device present" = "Billboard デバイスが存在します";
+"A Billboard device is present on this port. That usually appears when an Alt Mode like DisplayPort was set up but didn't fully come up. Your display is below its best mode, so a re-plug, a different cable, or a different adapter may bring it up. Some docks show a Billboard device normally, so this isn't always a fault." = "このポートに Billboard デバイスが存在します。これは通常、DisplayPort などの Alt Mode が開始されたが完全に確立されなかった場合に表示されます。ディスプレイが最高モードに達していないため、抜き挿し、別のケーブル、または別のアダプタで改善する場合があります。一部のドックは通常時でも Billboard デバイスを表示するため、必ずしも不具合ではありません。";
+
+/* Display dimension: confirmed full quality via CoreGraphics live mode (issue #246 Option B). */
+"macOS reports your %@ at its top mode (%@), and the link is carrying it. Many high-resolution displays use compression (DSC) to fit a mode like this through the link, so the link rate alone can't show it; your display is at full quality." = "macOS は %@ が最高モード（%@）で動作していると報告しており、リンクはそれを伝送しています。多くの高解像度ディスプレイは、このようなモードをリンクで通すために圧縮（DSC）を使用します。リンク速度だけではそれを示すことができません。ディスプレイは最高画質で動作しています。";
+
+/* Session monitor verdicts. */
+"Battery full, not drawing power" = "Battery full, not drawing power";
+"Performing as expected" = "Performing as expected";
+"No problems seen while watching this cable." = "No problems seen while watching this cable.";
+"Saw a brief drop or a single high reading. Not conclusive; still watching." = "Saw a brief drop or a single high reading. Not conclusive; still watching.";
+"Not performing as expected" = "Not performing as expected";
+"Isn't performing as expected" = "Isn't performing as expected";
+
+/* Power Monitor system power source indicator. */
+"Battery" = "バッテリー";
+"Source" = "電源";
+"Battery Power" = "バッテリー電力";
+"Negotiating…" = "ネゴシエーション中…";
+"Waiting for live reading…" = "ライブ測定値を待機中…";
+
+/* Softened blank e-marker note */
+"E-marker vendor ID is blank, but the cable is identified at the connector" = "e-markerのベンダーIDは空ですが、ケーブルはコネクタで識別されています";
+"The cable's e-marker chip reports a blank vendor ID, but the connector identifies the cable as %@ (%@), a USB-IF-registered vendor. A blank e-marker VID by itself is common on genuine passive cables, so it isn't a sign of a problem." = "ケーブルのe-markerチップはベンダーIDを空として報告していますが、コネクタはこのケーブルをUSB-IF登録ベンダーである%1$@（%2$@）として識別しています。e-marker VIDが空であること自体は本物のパッシブケーブルでよくあることであり、問題の兆候ではありません。";
+"Cable note:" = "ケーブルに関する注記:";
+"Vendor is recognised but not in WhatCable's bundled USB-IF list" = "ベンダーは判明していますが、WhatCableに同梱されたUSB-IF一覧には含まれていません";
+"The vendor ID %@ (%@) is a recognised maker in the community USB vendor list, but not in the USB-IF list WhatCable bundles." = "ベンダーID %1$@（%2$@）はコミュニティのUSBベンダー一覧では判明していますが、WhatCableに同梱されているUSB-IFの一覧には含まれていません。";
+
+/* DFP product type labels */
+"Host" = "ホスト";
+"Power Brick" = "電源アダプタ";
+
+"Battery full" = "バッテリー満充電";
+"Thunderbolt" = "Thunderbolt";
+
+"System draw" = "システム消費電力";
+
+"On battery" = "バッテリー駆動";
+"Power connected" = "電源接続済み";
+
+"Per-Port Metering Unavailable" = "ポートごとの計測は利用できません";
+"This Mac reports overall power below, but not per-port readings." = "この Mac は下に合計電力を表示しますが、ポートごとの値は表示しません。";
+"Per-port metering isn't available on this Mac." = "この Mac ではポートごとの計測は利用できません。";
+"macOS can be slow to report per-port power, sometimes up to a minute." = "macOS がポートごとの電力を報告するまで、最大で1分ほどかかることがあります。";
+"Display connected. No power is being sent out of this port. Incoming power shows in System Power Input below." = "ディスプレイが接続されています。このポートからは給電されていません。入力される電力は下の「システム電源入力」に表示されます。";
+"A charger is connected here, but your Mac is drawing power through %@. Incoming power shows in System Power Input below." = "ここに充電器が接続されていますが、Mac は %@ から給電されています。入力される電力は下の「システム電源入力」に表示されます。";
+"Connected to %lld Thunderbolt devices: %@" = "%1$lld台のThunderboltデバイスに接続: %2$@";
+"Thunderbolt fabric:" = "Thunderboltファブリック:";
+"Active tunnels:" = "アクティブなトンネル:";
+"Video" = "映像";
+"USB data" = "USBデータ";
+"PCIe data" = "PCIeデータ";
+"adapter %lld" = "アダプタ %lld";
+
+/* Active-layout contradiction note - placeholder, see en.lproj */
+"E-marker reports passive, but carries active-cable structure (may be a mis-programmed e-marker)" = "E-marker reports passive, but carries active-cable structure (may be a mis-programmed e-marker)";
+
+"Plugged in, charging on hold" = "接続中、充電は保留中";
+"Charger and cable are fine. macOS has paused charging for now, usually a battery charge limit or Optimized Battery Charging. The Mac still draws power from the charger." = "充電器とケーブルは正常です。macOS が現在充電を一時停止しています。通常はバッテリー充電制限または最適化されたバッテリー充電が原因です。Mac は引き続き充電器から電力を取得しています。";
+"Plugged in, charge limit reached" = "接続中、充電上限に到達";
+"Charger and cable are fine. The battery has reached the level macOS is charging it to, so charging has stopped. The Mac still draws power from the charger." = "充電器とケーブルは正常です。バッテリーが macOS の充電目標レベルに達したため、充電を停止しました。Mac は引き続き充電器から電力を取得しています。";
+"Plugged in, running on battery" = "接続中、バッテリーで動作中";
+"The charger is connected, but the Mac isn't drawing power from it right now, so it's running on its battery." = "充電器は接続されていますが、Mac は現在充電器から電力を取得していないため、バッテリーで動作しています。";
+"Plugged in · %lldW charger" = "接続中 · %lldW 充電器";
+"Plugged in" = "接続中";
+"Charging on hold (charge limit or Optimized Battery Charging)" = "充電保留中（充電制限または最適化されたバッテリー充電）";
+"Connected over Thunderbolt" = "Thunderbolt経由で接続";
+"Other USB devices" = "その他のUSBデバイス";
+"Reached through a Thunderbolt dock or display, so there's no cable, power, or Thunderbolt data for them." = "Thunderboltドックまたはディスプレイ経由で接続されているため、これらのケーブル、電力、Thunderboltのデータはありません。";
+"Built-in USB ports" = "内蔵USBポート";
+"Built-in USB-A ports" = "内蔵USB-Aポート";
+"Plain USB ports behind the Mac's internal hub, so there's no cable, power, or Thunderbolt data for them." = "Macの内蔵ハブに接続された通常のUSBポートのため、これらのケーブル、電力、Thunderboltのデータはありません。";
+"Move these devices to a Thunderbolt port to see more about them." = "これらのデバイスの詳細を確認するには、Thunderboltポートに接続し直してください。";
+
+/* Cable history */
+"Add this cable" = "このケーブルを追加";
+"Track what this cable delivers over time" = "このケーブルの長期的な性能を追跡";
+"Track what this cable delivers over time (Pro)" = "このケーブルの長期的な性能を追跡 (Pro)";
+"Track what this cable delivers over time. WhatCable records its speed and any drops while it's plugged in, so you can spot a cable that misbehaves." = "このケーブルの長期的な性能を追跡します。接続中の速度と低下を記録するので、問題のあるケーブルを見つけられます。";
+"Name" = "名前";
+"Note (optional)" = "メモ（任意）";
+"Add" = "追加";
+"Save" = "保存";
+"e.g. Desk TB5 cable" = "例: デスク TB5 ケーブル";
+"e.g. left drawer" = "例: 左引き出し";
+"Tracking: %@" = "追跡中: %@";
+"%@: underperformed before" = "%@: 過去に性能低下あり";
+"This cable has dropped below its rating before. Open Saved Cables for the history." = "このケーブルは以前に定格を下回りました。履歴は「保存済みケーブル」を開いてください。";
+"Tracking this as %@?" = "%@ として追跡しますか？";
+"Is this one of your cables?" = "これはあなたのケーブルですか？";
+"Pick…" = "選択…";
+"Don't track" = "追跡しない";
+"Yes, track as %@" = "はい、%@ として追跡";
+"Track as %@?" = "%@ として追跡しますか？";
+"Track this cable?" = "このケーブルを追跡しますか？";
+"Saved cables" = "保存済みケーブル";
+"What each of your cables has delivered over time" = "各ケーブルの長期的な性能記録";
+"No saved cables yet" = "保存済みケーブルはありません";
+"Open WhatCable, find a connected cable, and choose \"Add this cable\" on its port to start tracking it." = "WhatCable を開き、接続されたケーブルを見つけて、そのポートで「このケーブルを追加」を選択して追跡を開始してください。";
+"History" = "履歴";
+"Rename" = "名前を変更";
+"Delete" = "削除";
+"Delete this cable and its history?" = "このケーブルと履歴を削除しますか？";
+"Delete %@" = "%@ を削除";
+"This removes the cable and everything recorded for it. It can't be undone." = "ケーブルとすべての記録データが削除されます。元に戻すことはできません。";
+"Range" = "期間";
+"No history in this range" = "この期間に履歴はありません";
+"Recording happens while the cable is plugged in and WhatCable is running." = "記録はケーブルが接続され、WhatCable が起動している間に行われます。";
+"No speed data" = "速度データなし";
+"This cable reported no negotiated link rate while connected." = "このケーブルは接続中にネゴシエートされたリンク速度を報告しませんでした。";
+"7 days" = "7日間";
+"30 days" = "30日間";
+"All" = "すべて";
+"Rename cable" = "ケーブルの名前を変更";
+"Saved Cables" = "保存済みケーブル";
+"No history yet" = "履歴はまだありません";
+"Underperformed once" = "1回性能低下";
+"Underperformed %d times" = "%d回性能低下";
+"Occasional caution" = "時々注意";
+"Performing" = "正常動作";
+
+/* Cable history: full-blob identity */
+"Identified by its e-marker (VID 0x%04X, PID 0x%04X)" = "e-markerで識別済み（VID 0x%04X、PID 0x%04X）";
+"Has an e-marker, but no unique ID (product ID not set)" = "e-markerはあるが固有IDなし（製品IDが未設定）";
+"Has an e-marker, but the maker never programmed an ID" = "e-markerはあるが、メーカーがIDを書き込んでいない";
+"This cable has no e-marker, so it can't be tracked." = "このケーブルにはe-markerがないため、追跡できません。";
+"This cable can't be tracked" = "このケーブルは追跡できません";
+"Matches your saved cable %@. Two units of the same model can't be told apart, so their history will merge if you save this one too." = "保存済みのケーブル「%@」と一致します。同じモデルの2本は区別できないため、これも保存すると履歴が統合されます。";
+"Identified by its MagSafe cable ID (VID 0x%04X, PID 0x%04X). Cables of this exact model look identical, so this record tracks the model, not one physical cable." = "MagSafeケーブルIDで識別済み（VID 0x%04X、PID 0x%04X）。この正確なモデルのケーブルはすべて同じに見えるため、この記録は個々のケーブルではなくモデルを追跡します。";
+"You already have this MagSafe cable saved as %@. Cables of this model can't be told apart, so add its history to that one instead." = "このMagSafeケーブルはすでに「%@」として保存されています。このモデルのケーブルは区別できないため、履歴はそちらに追加してください。";
+"This cable has no e-marker, so nothing new can be recorded for it. Its existing history stays available." = "このケーブルにはe-markerがないため、新しい記録を追加できません。既存の履歴は引き続き利用できます。";
+"Can't add this cable" = "このケーブルは追加できません";
+"OK" = "OK";
+
+/* Built-in display port card (issue #352). English placeholders, community can refine. */
+"%lld displays connected" = "%lld displays connected";
+"Built-in %1$@ port %2$lld" = "Built-in %1$@ port %2$lld";
+
+"Display running compressed (DSC) to fit through the link" = "ディスプレイはリンクに収めるため圧縮（DSC）で動作中";
+
+/* Issue #664: the display verdict reads macOS's display-node statement. English; community-refined. */
+"macOS reports your %@ at its top mode (%@) and states it is running uncompressed. The link is carrying it in full; nothing is holding the picture back." = "macOS は %@ が最高モード（%@）で動作していると報告し、非圧縮で動作していると述べています。リンクはそれを完全に伝送しており、映像を妨げているものはありません。";
+"macOS states the current mode, %@, is running uncompressed." = "macOS は現在のモード（%@）が非圧縮で動作していると述べています。";
+"macOS reports your %@'s current mode as %@ and states that this link needs compression (DSC) to carry it. High-resolution displays use DSC to fit a mode like this through a link like this. The picture is reaching the display, so this is working as intended." = "macOS は %@ の現在のモードを %@ と報告し、このリンクでそれを伝送するには圧縮（DSC）が必要だと述べています。高解像度ディスプレイは、このようなリンクでこのようなモードを通すために DSC を使用します。映像はディスプレイに届いているため、意図通りに動作しています。";
+"Display running compressed (DSC)" = "ディスプレイは圧縮（DSC）で動作中";
+"macOS reports your %@'s current mode as %@ with compression (DSC) on. Apple displays run compressed whenever the link supports it, so this says nothing about the link's capacity. The picture is reaching the display, so this is working as intended." = "macOS は %@ の現在のモードを、圧縮（DSC）が有効な状態で %@ と報告しています。Apple 製ディスプレイはリンクが対応していれば常に圧縮で動作するため、これはリンクの容量について何も示していません。映像はディスプレイに届いているため、意図通りに動作しています。";
+"macOS reports your %@'s current mode as %@ but does not name the colour format in use, so whether the link is compressing it can't be read from here." = "macOS は %@ の現在のモードを %@ と報告していますが、使用中の色フォーマットを示していないため、リンクが圧縮しているかどうかはここからは読み取れません。";
+"macOS lists your %@'s top mode (%@) as available on this link, uncompressed. The mode selected in Display settings, or this Mac's choice for this display, is what is holding the picture below it, not the cable or adapter." = "macOS は %@ の最高モード（%@）をこのリンクで非圧縮で利用可能なものとして挙げています。映像をそれより低く抑えているのは、ディスプレイ設定で選択されているモード、またはこのディスプレイに対するこの Mac の選択であり、ケーブルやアダプタではありません。";
+"macOS lists your %@'s top mode (%@) as available on this link with compression (DSC). The mode selected in Display settings, or this Mac's choice for this display, is what is holding the picture below it, not the cable or adapter." = "macOS は %@ の最高モード（%@）をこのリンクで圧縮（DSC）付きで利用可能なものとして挙げています。映像をそれより低く抑えているのは、ディスプレイ設定で選択されているモード、またはこのディスプレイに対するこの Mac の選択であり、ケーブルやアダプタではありません。";
+"macOS lists your %@'s top mode (%@) as available on this link. The mode selected in Display settings, or this Mac's choice for this display, is what is holding the picture below it, not the cable or adapter." = "macOS は %@ の最高モード（%@）をこのリンクで利用可能なものとして挙げています。映像をそれより低く抑えているのは、ディスプレイ設定で選択されているモード、またはこのディスプレイに対するこの Mac の選択であり、ケーブルやアダプタではありません。";
+"macOS does not offer your %@'s top mode (%@) on this link as it is now. The video is tunneled over Thunderbolt or USB4, so the cable carries far more than the display needs: this is unlikely to be the cable. It's most likely the resolution or refresh rate selected in Display settings, or this Mac's limit for this display; selecting the higher mode would retrain the link and show whether it is offered." = "macOS は現在の状態のこのリンクで %@ の最高モード（%@）を提供していません。映像は Thunderbolt または USB4 でトンネリングされているため、ケーブルはディスプレイに必要な帯域幅をはるかに超えて転送しています。ケーブルの問題である可能性は低く、ディスプレイ設定で選択されている解像度またはリフレッシュレート、あるいはこのディスプレイに対するこの Mac の上限が原因の可能性が高いです。より高いモードを選択するとリンクが再確立され、そのモードが提供されるかどうかが分かります。";
+"macOS does not offer your %@'s top mode (%@) on this link as it is now. The cable is already carrying every DisplayPort lane this Mac provides, so this is unlikely to be the cable. Selecting the higher mode in Display settings would retrain the link and show whether it is offered." = "macOS は現在の状態のこのリンクで %@ の最高モード（%@）を提供していません。この Mac が提供するすべての DisplayPort レーンをケーブルはすでに転送しているため、ケーブルの問題である可能性は低いです。ディスプレイ設定でより高いモードを選択するとリンクが再確立され、そのモードが提供されるかどうかが分かります。";
+"macOS does not offer your %@'s top mode (%@) on this link as it is now. If you've selected the higher mode and aren't getting it, the cable or adapter is the likely limit; if you haven't tried it, selecting it would retrain the link and show whether it is offered." = "macOS は現在の状態のこのリンクで %@ の最高モード（%@）を提供していません。より高いモードを選択しても反映されない場合は、ケーブルまたはアダプタが原因の可能性があります。まだ試していない場合は、選択するとリンクが再確立され、そのモードが提供されるかどうかが分かります。";
+"Your %@ is reached through a USB-C to %@ adapter that reports as %@, and macOS does not offer the monitor's top mode (%@) on this link as it is now. With an adapter in the chain, the adapter's own limit may be the cap rather than the cable. A native DisplayPort connection, or a higher-spec adapter, would tell you which." = "%@ には USB-C から %@ へのアダプタ（%@ として認識）を経由して接続されており、macOS は現在の状態のこのリンクでモニターの最高モード（%@）を提供していません。アダプタが経由している場合、制限の原因はケーブルではなくアダプタの性能である可能性があります。ネイティブ DisplayPort 接続か、より高スペックのアダプタを試すと原因を特定できます。";
+"Your %@ is reached through a USB-C to %@ adapter, and macOS does not offer the monitor's top mode (%@) on this link as it is now. With an adapter in the chain, the adapter's own limit may be the cap rather than the cable. Trying the monitor over native DisplayPort, or a higher-spec adapter, would tell you which." = "%@ には USB-C から %@ へのアダプタを経由して接続されており、macOS は現在の状態のこのリンクでモニターの最高モード（%@）を提供していません。アダプタが経由している場合、制限の原因はケーブルではなくアダプタの性能である可能性があります。ネイティブ DisplayPort 接続か、より高スペックのアダプタを試すと原因を特定できます。";
+"macOS's list of modes for your %@ has no entry matching its top mode (%@), so whether this link could carry it can't be read from here." = "macOS の %@ のモード一覧には最高モード（%@）に一致する項目がないため、このリンクがそれを伝送できるかどうかはここからは読み取れません。";
+"macOS's display node could not be matched to your %@, so whether this link could carry its top mode (%@) can't be read from here. If the picture looks right, it most likely is." = "macOS のディスプレイノードを %@ に対応付けられなかったため、このリンクが最高モード（%@）を伝送できるかどうかはここからは読み取れません。映像が正しく見えていれば、おそらく問題ありません。";
+"Monitor can do more than it is set to" = "モニターの性能が設定値を上回っています";
+"Its EDID also lists %lld × %lld at %lldHz in 4:2:0 only. On the current timing, macOS records the adapter converting the picture to 4:2:0 on its way to the display." = "EDID には %1$lld × %2$lld、%3$lld Hz のモードも記載されていますが、これは 4:2:0 でのみ対応しています。現在のタイミングでは、アダプタがディスプレイへの途中で映像を 4:2:0 に変換していることを macOS が記録しています。";
+"Its EDID also lists %lld × %lld at %lldHz in 4:2:0 only. The current timing includes a colour mode the adapter sends to the display as 4:2:0; macOS does not name which of the timing's modes is in use." = "EDID には %1$lld × %2$lld、%3$lld Hz のモードも記載されていますが、これは 4:2:0 でのみ対応しています。現在のタイミングには、アダプタが 4:2:0 としてディスプレイに送る色モードが含まれていますが、macOS はこのタイミングのどのモードが使用中かを示していません。";
+"Its EDID also lists %lld × %lld at %lldHz in 4:2:0 only, a mode macOS does not send over the DisplayPort link." = "EDID には %1$lld × %2$lld、%3$lld Hz のモードも記載されていますが、これは 4:2:0 でのみ対応しており、macOS はこのモードを DisplayPort リンクで送信しません。";
+
+/* Issue #664: statement receipts, shared by the CLI text output and the Pro Display screen. */
+"macOS states: %@" = "macOS の記述：%@";
+"DSC on" = "DSC オン";
+"Uncompressed" = "非圧縮";
+"Not named" = "記載なし";
+"Live mode needs about %@; the link's usable rate is %@ to %@." = "現在のモードには約 %@ が必要で、リンクの利用可能な速度は %@ から %@ です。";
+"The bandwidth arithmetic disagrees with macOS's statement for this mode. The statement is what is shown." = "帯域幅の計算がこのモードに関する macOS の記述と一致しません。表示されているのは macOS の記述です。";
+"macOS rates %lld of %lld colour modes on this timing as above the %@ adapter's TMDS rate limit." = "macOS は、このタイミングの %2$lld 個の色モードのうち %1$lld 個を %3$@ アダプタの TMDS 速度制限を超えるものと評価しています。";
+"macOS rates %lld of %lld colour modes on this timing as above the HDMI port's TMDS rate limit." = "macOS は、このタイミングの %2$lld 個の色モードのうち %1$lld 個を HDMI ポートの TMDS 速度制限を超えるものと評価しています。";
+"macOS's list of colour modes above the %@ adapter's TMDS rate limit could not be read for this timing." = "%@ アダプタの TMDS 速度制限を超える色モードの macOS の一覧を、このタイミングについて読み取れませんでした。";
+"macOS's list of colour modes above the HDMI port's TMDS rate limit could not be read for this timing." = "HDMI ポートの TMDS 速度制限を超える色モードの macOS の一覧を、このタイミングについて読み取れませんでした。";
+"Top mode needs at 8-bit RGB" = "最高モードに必要な帯域幅（8 ビット RGB）";
+"Top mode needs about %@ at 8-bit RGB; the link carries about %@." = "最高モードには 8 ビット RGB で約 %@ が必要で、リンクは約 %@ を転送しています。";
+"Top mode on this link: %@" = "このリンクでの最高モード：%@";
+"available, uncompressed" = "利用可能、非圧縮";
+"available, with DSC" = "利用可能、DSC 付き";
+"available" = "利用可能";
+"not offered" = "提供されていません";
+"no matching entry" = "一致する項目なし";
+"The cable is not the limit: macOS lists the top mode on this link." = "ケーブルは制限ではありません。macOS はこのリンクで最高モードを挙げています。";
+
+/* Issue #393: CIO is a floor on cable capability, not a cap (negotiated-rate resolution). Translated; nuance is community-refinable. */
+"Controller confirms Thunderbolt cable (%@)" = "コントローラーが Thunderbolt ケーブルを確認しました (%@)";
+"Thunderbolt link active at %@" = "Thunderbolt リンクは %@ でアクティブです";
+"The cable claims %@, and the link has run at least %@. There's no host or device data to compare against, so we can't tell if anything else is limiting it." = "このケーブルは %1$@ を主張していて、リンクは少なくとも %2$@ で動作したことがあります。比較できるポートやデバイスのデータがないため、他に何かが制限しているかどうかは判断できません。";
+"The cable claims %@, and the link has run at least %@. There's no device data to compare against, so we can't tell if anything else is limiting it." = "このケーブルは %1$@ を主張していて、リンクは少なくとも %2$@ で動作したことがあります。比較できるデバイスのデータがないため、他に何かが制限しているかどうかは判断できません。";
+
+"Shared controller port" = "コントローラ共有ポート";
+
+/* USB-IF certification */
+"USB-IF certified. Manufacturer: %@, model %@ (%@)" = "USB-IF認証済み。 製造元: %1$@, モデル %2$@ (%3$@)";
+"USB-IF certified. Manufacturer: %@, model %@" = "USB-IF認証済み。 製造元: %1$@, モデル %2$@";
+"USB-IF certified. Manufacturer: %@ (%@)" = "USB-IF認証済み。 製造元: %1$@ (%2$@)";
+"USB-IF certified. Manufacturer: %@" = "USB-IF認証済み。 製造元: %1$@";
+"The cable's declared maker matches the USB-IF certificate" = "ケーブルが申告する製造元がUSB-IF認証と一致します";
+
+/* Header for a USB controller group in the connected-devices tree. */
+"USB bus" = "USBバス";
+"USB device, data blocked" = "USBデバイス、データはブロック中";
+"macOS is holding data back until you approve the accessory." = "アクセサリを許可するまで、macOSがデータを保留しています。";
+"Video is working. macOS is holding data back until you approve the accessory." = "映像は出ています。アクセサリを許可するまで、macOSがデータを保留しています。";
+"USB device, data blocked · %lldW charger" = "USBデバイス、データはブロック中 · %lld W充電器";
+/* Port card source attribution (grouped headers + e-marker read state) */
+"Present, but not read on this connection. Try reconnecting; some chargers and docks block the read." = "検出されましたが、この接続では読み取れませんでした。ケーブルを接続し直してください。一部の充電器やドックでは読み取りがブロックされることがあります。";
+"Present, but not read on this connection. macOS usually reads it above 3A or over Thunderbolt." = "検出されましたが、この接続では読み取れませんでした。macOS は通常、3 A を超える場合か Thunderbolt 経由でのみ読み取ります。";
+"This port can't read cable details: USB-only, no Power Delivery." = "このポートはケーブル情報を読み取れません: USB のみで Power Delivery なし。";
+"Plug the cable into a Thunderbolt port to see its details." = "ケーブルを Thunderbolt ポートに接続すると、詳細を確認できます。";
+"The %@ contract shows the charger treated this as an e-marked, 5A-capable cable, so charging isn't limited by the cable. This Mac couldn't get its own read here. Connect the cable to another device to see its details." = "%@ の契約から、この充電器がこのケーブルを e-marker 搭載の 5 A 対応ケーブルとして扱ったことがわかります。そのため、充電はケーブルによって制限されていません。この Mac ではここで読み取ることができませんでした。ケーブルを別のデバイスに接続して詳細を確認してください。";
+"No e-marker response. Cable details aren't available on this connection. Try another device to read it." = "e-marker からの応答がありません。この接続ではケーブル情報を利用できません。別のデバイスで読み取ってみてください。";
+"Reading cable details…" = "ケーブル情報を読み取り中…";
+"No e-marker read. The cable may have one; macOS usually reads it above 3A or over Thunderbolt." = "e-marker を読み取れませんでした。ケーブルに搭載されている可能性はあります。macOS は通常、3 A を超える場合か Thunderbolt 経由でのみ読み取ります。";
+"Passive (no signal-conditioning electronics)" = "パッシブ (信号処理回路なし)";
+"%@ isn't in our bundled vendor list" = "%1$@ は内蔵ベンダーリストにありません";
+"%@ isn't in our copy of the USB-IF registry" = "%1$@ は当社の USB-IF レジストリの控えにありません";
+"What your Mac measured" = "Mac が測定した内容";
+"What the cable's e-marker reports" = "ケーブルの e-marker が報告する内容";
+"What the charger reports" = "充電器が報告する内容";
+"What WhatCable knows" = "WhatCable が把握している内容";
+"Made by %@ (%@), per our bundled vendor list" = "内蔵ベンダーリストによると %1$@ (%2$@) 製";
+"Answered, but reported no capability data." = "応答しましたが、能力データは報告されませんでした。";
+"Certification ID" = "認証 ID";
+"Connect a charger to identify the cable." = "ケーブルを識別するには充電器を接続してください。";
+
+/* Power Monitor: a charge path that never negotiates a contract (issue #592) */
+"No PD contract on this port. Incoming power shows in System Power Input below." = "このポートには PD 契約がありません。入力される電力は下の「システム電源入力」に表示されます。";
+
+/* PD event log: opcode-plus-argument decode of PortControllerEvtBuffer */
+"Plug attached" = "プラグ接続";
+"Plug detached" = "プラグ取り外し";
+"Plug event" = "プラグイベント";
+"Source capabilities received (%lld PDOs)" = "ソース性能受信 (%lld PDO)";
+"Request sent" = "リクエスト送信";
+"Source ready" = "ソース準備完了";
+"Source ready rejected" = "ソース準備が拒否されました";
+"Partner identity received" = "接続先の識別情報を受信";
+"Mac became power source" = "Mac が電源供給側になりました";
+"The Mac asked the source for one of the power levels it had offered." = "Mac がソースに対し、提示された電力レベルのいずれかを要求しました。";
+"The source reported whether the requested power level is now in place." = "要求した電力レベルが有効になったかどうかをソースが報告しました。";
+"The Mac started supplying power to the device on this port." = "Mac がこのポートの機器への電力供給を開始しました。";
+"This event code has not been decoded yet." = "このイベントコードはまだ解読されていません。";
+"The port's attach and detach counters move with this event, so it lines up with what Port Health shows." = "このイベントに合わせてポートの接続回数と取り外し回数が動くため、ポートヘルスの表示と一致します。";
+"The source sent its list of power data objects. The argument byte is how many it offered." = "ソースが Power Data Objects の一覧を送信しました。引数バイトは提示された個数です。";
+"The Mac sent a request picking one of the advertised power levels. It always follows a source capabilities event." = "Mac が提示された電力レベルの1つを選んでリクエストを送信しました。必ずソース性能イベントの後に現れます。";
+"The outcome of the request. An argument of 0x81 means the source turned it down and the old power level stayed." = "リクエストの結果です。引数が 0x81 の場合、ソースが拒否し、以前の電力レベルのままになったことを意味します。";
+"The Mac switched to supplying power on this port, for example when it charges an attached device." = "Mac がこのポートで電力供給に切り替えました。接続した機器を充電するときなどです。";
+"This code turns up in the buffer but we have not yet matched it to a behaviour." = "このコードはバッファに現れますが、まだ動作と対応付けられていません。";
+"Argument %@" = "引数 %@";
+"Arguments %@" = "引数 %@ (複数)";
+"Source ready (result unknown)" = "ソース準備完了 (結果不明)";
+
+/* Cable plug type, Cable VDO bits 19..18. Type-A and Type-B are deprecated by the USB-PD spec. */
+"USB Type-A plug (deprecated)" = "USB Type-Aプラグ（非推奨）";
+"USB Type-B plug (deprecated)" = "USB Type-Bプラグ（非推奨）";
+"USB Type-C plug" = "USB Type-Cプラグ";
+"Captive cable (built into the device)" = "一体型ケーブル（機器に内蔵）";
+
+/* Cable type source: the port controller's own ActiveCable reading, and the
+   e-marker silicon vendor hint. */
+"E-marker reports passive, but the port controller detects an active cable" = "E-marker はパッシブと報告していますが、ポートコントローラはアクティブケーブルを検出しています";
+"E-marker carries its chip maker's default vendor ID (%@); the cable brand is not recorded" = "E-marker はチップメーカーの既定のベンダー ID (%@) を持っています。ケーブルのブランドは記録されていません";
+"USB accessory (audio or adapter)" = "USBアクセサリ（オーディオまたはアダプタ）";
+"This accessory has its own USB-C plug. It is not a cable and does not charge." = "このアクセサリには専用のUSB-Cプラグが付いています。ケーブルではなく、充電もしません。";
+"This plug is part of the accessory, not a cable, so there is no cable rating." = "このプラグはケーブルではなくアクセサリの一部なので、ケーブルの定格はありません。";

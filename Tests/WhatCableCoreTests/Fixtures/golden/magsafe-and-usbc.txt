@@ -1,0 +1,7 @@
+=== Port-USB-C@1 (USB-C) ===
+Nothing connected
+Plug a cable into Port-USB-C@1 to see what it can do.
+
+=== Port-MagSafe 3@2 (MagSafe 3) ===
+Nothing connected
+Plug a cable into Port-MagSafe 3@2 to see what it can do.

@@ -1,0 +1,678 @@
+import Foundation
+
+/// USB Power Delivery 3.0 / 3.1 VDO decoders. We only parse the fields we
+/// surface — refer to the USB-PD spec (Universal Serial Bus Power Delivery
+/// Specification, Revision 3.1) for the full layout.
+public enum PDVDO {
+
+    // MARK: ID Header VDO (always VDO[0])
+
+    /// Product type for the UFP (upstream-facing port) and SOP' cable path.
+    /// Bits 29..27 of the ID Header VDO. Table 6.34, USB PD R3.2.
+    /// At SOP': 011 = Passive Cable, 100 = Active Cable, 110 = VPD.
+    public enum UFPProductType: Int {
+        case undefined = 0       // "Not UFP" / not set
+        case pdusbHub = 1
+        case pdusbPeripheral = 2
+        case passiveCable = 3
+        case activeCable = 4
+        case ama = 5             // Alternate Mode Adapter
+        case vpd = 6             // VCONN-Powered Device
+        case other = 7
+
+        public var label: String {
+            switch self {
+            case .undefined: return String(localized: "Unspecified", bundle: _coreLocalizedBundle)
+            case .pdusbHub: return String(localized: "USB Hub", bundle: _coreLocalizedBundle)
+            case .pdusbPeripheral: return String(localized: "USB Peripheral", bundle: _coreLocalizedBundle)
+            case .passiveCable: return String(localized: "Passive cable", bundle: _coreLocalizedBundle)
+            case .activeCable: return String(localized: "Active cable", bundle: _coreLocalizedBundle)
+            case .ama: return String(localized: "Alternate Mode Adapter", bundle: _coreLocalizedBundle)
+            case .vpd: return String(localized: "VCONN-powered device", bundle: _coreLocalizedBundle)
+            case .other: return String(localized: "Other", bundle: _coreLocalizedBundle)
+            }
+        }
+    }
+
+    /// Product type for the DFP (downstream-facing port / host) field.
+    /// Bits 25..23 of the ID Header VDO. Table 6.34, USB PD R3.2.
+    /// Raw values overlap with UFPProductType but carry different meanings:
+    /// 010 = Host (not Peripheral), 011 = Power Brick (not Passive Cable).
+    public enum DFPProductType: Int {
+        case undefined = 0       // "Not DFP" / not set
+        case pdusbHub = 1
+        case host = 2
+        case powerBrick = 3
+        // Values 4-7 are reserved in the DFP field per Table 6.34.
+        case reserved4 = 4
+        case reserved5 = 5
+        case reserved6 = 6
+        case reserved7 = 7
+
+        public var label: String {
+            switch self {
+            case .undefined: return String(localized: "Unspecified", bundle: _coreLocalizedBundle)
+            case .pdusbHub: return String(localized: "USB Hub", bundle: _coreLocalizedBundle)
+            case .host: return String(localized: "Host", bundle: _coreLocalizedBundle)
+            case .powerBrick: return String(localized: "Power Brick", bundle: _coreLocalizedBundle)
+            case .reserved4, .reserved5, .reserved6, .reserved7:
+                return String(localized: "Unspecified", bundle: _coreLocalizedBundle)
+            }
+        }
+    }
+
+    public struct IDHeader: Hashable {
+        public let usbCommHost: Bool
+        public let usbCommDevice: Bool
+        public let modalOperation: Bool
+        /// UFP product type (bits 29..27). Set on cables, peripherals, and
+        /// hubs when acting as a UFP. Also used for the cable field at SOP'.
+        public let ufpProductType: UFPProductType
+        /// DFP product type (bits 25..23). Set on hosts and hubs when acting
+        /// as a DFP. Has different meanings from the UFP field for the same
+        /// raw values (e.g. 010 = Host here, not Peripheral).
+        public let dfpProductType: DFPProductType
+        public let vendorID: Int
+
+        /// True when this responder declares itself a cable (passive or
+        /// active). Cables declare their type via the UFP/SOP' field only.
+        /// The DFP field never encodes cable types, so this is correctly
+        /// derived from ufpProductType alone.
+        public var isCable: Bool {
+            ufpProductType == .passiveCable || ufpProductType == .activeCable
+        }
+
+        /// True when the DFP field's raw bits (25..23) happen to match UFP
+        /// cable-type values (3 = passive, 4 = active) even though the spec
+        /// says those bits mean something else in the DFP context.
+        ///
+        /// Some real cables respond at SOP with UFP = undefined and DFP = 3
+        /// or 4, using UFP-context semantics in the DFP field. This is
+        /// non-compliant firmware, but it is present in the corpus (e.g.
+        /// Southchip 0x311C, Shenzhen Kejinming 0x2F16). Use this alongside
+        /// `isCable` (not instead of it) when a best-effort heuristic is
+        /// more appropriate than strict spec decoding.
+        public var dfpRawValueLooksLikeCable: Bool {
+            dfpProductType.rawValue == UFPProductType.passiveCable.rawValue
+                || dfpProductType.rawValue == UFPProductType.activeCable.rawValue
+        }
+    }
+
+    public static func decodeIDHeader(_ vdo: UInt32) -> IDHeader {
+        IDHeader(
+            usbCommHost: (vdo >> 31) & 1 == 1,
+            usbCommDevice: (vdo >> 30) & 1 == 1,
+            modalOperation: (vdo >> 26) & 1 == 1,
+            ufpProductType: UFPProductType(rawValue: Int((vdo >> 27) & 0b111)) ?? .undefined,
+            dfpProductType: DFPProductType(rawValue: Int((vdo >> 23) & 0b111)) ?? .undefined,
+            vendorID: Int(vdo & 0xFFFF)
+        )
+    }
+
+    // MARK: Cable VDO (passive or active, VDO[3] in PD 3.0+)
+
+    public enum CableSpeed: Int {
+        case usb20 = 0
+        case usb32Gen1 = 1   // 5 Gbps
+        case usb32Gen2 = 2   // 10 Gbps
+        // 40 Gbps. The spec encoding is ambiguous (20 Gbps under PD 3.0,
+        // 40 Gbps under PD 3.1) and the SOP Specification Revision field
+        // only ever reads 2 or 3, so it cannot separate the two. The
+        // research corpus supports 40 Gbps but does not settle it: most
+        // joined readings are confounded by a host-side link cap, so the
+        // informative sample is small.
+        case usb4Gen3 = 3
+        case usb4Gen4 = 4    // 80 Gbps
+
+        public var label: String {
+            switch self {
+            case .usb20: return String(localized: "USB 2.0 (480 Mbps)", bundle: _coreLocalizedBundle)
+            case .usb32Gen1: return String(localized: "USB 3.2 Gen 1 (5 Gbps)", bundle: _coreLocalizedBundle)
+            case .usb32Gen2: return String(localized: "USB 3.2 Gen 2 (10 Gbps)", bundle: _coreLocalizedBundle)
+            case .usb4Gen3: return String(localized: "USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)", bundle: _coreLocalizedBundle)
+            case .usb4Gen4: return String(localized: "USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)", bundle: _coreLocalizedBundle)
+            }
+        }
+
+        /// Stable, non-localized value for reports and generated data.
+        /// Keep `label` for localized UI presentation.
+        public var reportLabel: String {
+            switch self {
+            case .usb20: return "USB 2.0 (480 Mbps)"
+            case .usb32Gen1: return "USB 3.2 Gen 1 (5 Gbps)"
+            case .usb32Gen2: return "USB 3.2 Gen 2 (10 Gbps)"
+            case .usb4Gen3: return "USB4 Gen 3 (40 Gbps, Thunderbolt 4 class)"
+            case .usb4Gen4: return "USB4 Gen 4 (80 Gbps, Thunderbolt 5 class)"
+            }
+        }
+
+        public var maxGbps: Double {
+            switch self {
+            case .usb20: return 0.48
+            case .usb32Gen1: return 5
+            case .usb32Gen2: return 10
+            case .usb4Gen3: return 40
+            case .usb4Gen4: return 80
+            }
+        }
+    }
+
+    public enum CableCurrent: Int {
+        case usbDefault = 0   // 900 mA / 1.5 A typical USB
+        case threeAmp = 1
+        case fiveAmp = 2
+
+        public var maxAmps: Double {
+            switch self {
+            case .usbDefault: return 3.0   // be charitable; Type-C default current is 3A on cables
+            case .threeAmp: return 3.0
+            case .fiveAmp: return 5.0
+            }
+        }
+
+        public var label: String {
+            switch self {
+            case .usbDefault: return String(localized: "USB default", bundle: _coreLocalizedBundle)
+            case .threeAmp: return String(localized: "3 A", bundle: _coreLocalizedBundle)
+            case .fiveAmp: return String(localized: "5 A", bundle: _coreLocalizedBundle)
+            }
+        }
+
+        /// Stable, non-localized value for reports and generated data, the
+        /// same split as CableSpeed.reportLabel. The localized `label` fed
+        /// the GitHub cable report and `--json`, and a translation is free
+        /// to replace the ASCII "A" (one already does), which the report
+        /// parser cannot read back.
+        public var reportLabel: String {
+            switch self {
+            case .usbDefault: return "USB default"
+            case .threeAmp: return "3 A"
+            case .fiveAmp: return "5 A"
+            }
+        }
+    }
+
+    /// Plug type carried by Passive and Active Cable VDO bits 19..18
+    /// (Table 6.42 / 6.43). Type-A and Type-B are deprecated by the spec and
+    /// are near-absent in practice: across 764 SOP' readings carrying VDO[3]
+    /// the corpus holds 719 Type-C, 37 captive, 8 Type-A and no Type-B.
+    public enum PlugType: Int {
+        case typeA = 0
+        case typeB = 1
+        case typeC = 2
+        case captive = 3
+
+        public var label: String {
+            switch self {
+            case .typeA: return String(localized: "USB Type-A plug (deprecated)", bundle: _coreLocalizedBundle)
+            case .typeB: return String(localized: "USB Type-B plug (deprecated)", bundle: _coreLocalizedBundle)
+            case .typeC: return String(localized: "USB Type-C plug", bundle: _coreLocalizedBundle)
+            case .captive: return String(localized: "Captive cable (built into the device)", bundle: _coreLocalizedBundle)
+            }
+        }
+
+        /// Stable, non-localized value for reports and generated data.
+        /// Keep `label` for localized UI presentation.
+        public var reportLabel: String {
+            switch self {
+            case .typeA: return "Type-A"
+            case .typeB: return "Type-B"
+            case .typeC: return "Type-C"
+            case .captive: return "captive"
+            }
+        }
+    }
+
+    public enum CableType: Int {
+        case passive = 0
+        case active = 1
+        case other = 2
+    }
+
+    public enum DecodeWarning: Hashable {
+        case reservedSpeedEncoding(Int)
+        case reservedCurrentEncoding(Int)
+        /// Cable latency field uses a reserved value. Bounds depend on
+        /// cable type: passive cables treat 0000 and 1001..1111 as
+        /// invalid; active cables treat 0000 and 1011..1111 as invalid
+        /// (1001 and 1010 carry valid optical-cable latencies).
+        case reservedCableLatencyEncoding(Int)
+        /// Cable VDO Version field (bits 23..21) uses a value the spec
+        /// marks as Invalid for this cable type. Passive cables: only
+        /// `000` (v1.0) is valid. Active cables: `000` (deprecated v1.0),
+        /// `010` (deprecated v1.2), and `011` (v1.3) are accepted.
+        case invalidVDOVersion(Int)
+        /// Cable Termination field (bits 12..11) uses a value the spec
+        /// marks as Invalid for this cable type. Passive cables: `00`
+        /// and `01` valid. Active cables: `10` and `11` valid.
+        case invalidCableTermination(Int)
+        /// Passive cable's e-marker advertises EPR Capable but reports
+        /// only 20V Max VBUS. EPR requires 48V or 50V VBUS, so this
+        /// pair of fields is internally contradictory.
+        case eprClaimedWithLowMaxVoltage
+    }
+
+    public struct CableVDO: Hashable {
+        public let speed: CableSpeed
+        public let current: CableCurrent
+        /// Approximate maximum power the cable can actually deliver: the
+        /// highest real USB-PD voltage it carries (capped at the spec's 48V
+        /// EPR ceiling) times its current rating. Deliberately not
+        /// `ratingVoltage × current`: a 50V-rated cable's rating field is
+        /// insulation headroom, not a delivery voltage, so the raw multiply
+        /// would report 250W when USB-PD tops out at 240W.
+        public let maxWatts: Int
+        public let cableType: CableType
+        /// Plug type from bits 19..18. The field is two bits wide, so every
+        /// encoding is defined and no decode warning is possible.
+        public let plugType: PlugType
+        public let vbusThroughCable: Bool
+        /// Encoded "Maximum VBUS Voltage" field (bits 10..9).
+        /// Per USB PD R3.2 Table 6.42: 00=20V, 01..10=Deprecated (treat as 20V), 11=50V.
+        public let maxVoltageEncoded: Int
+        /// Raw 4-bit "Cable Latency" field (bits 16..13). 0000 and reserved
+        /// values per cable type are flagged via `decodeWarnings`. Use
+        /// `latencyNanoseconds` for a typed interpretation.
+        public let cableLatencyEncoded: Int
+        /// Raw 3-bit "VDO Version" field (bits 23..21). Validity depends
+        /// on cable type and is reported via `decodeWarnings`.
+        public let vdoVersionEncoded: Int
+        /// Raw 2-bit "Cable Termination" field (bits 12..11). Validity
+        /// depends on cable type and is reported via `decodeWarnings`.
+        public let cableTerminationEncoded: Int
+        /// Bit 17, "EPR Capable." When true, the cable claims to be safe
+        /// for Extended Power Range operation (48V / 50V).
+        public let eprCapable: Bool
+        /// Bit 3, "SOP'' Controller Present" in Active Cable VDO1 layout
+        /// (Table 6.43). This bit occupies the Reserved [4:3] region of the
+        /// Passive Cable VDO layout (Table 6.42), where the spec requires it
+        /// to be zero. A passive-reporting cable with this bit set carries a
+        /// structural contradiction: it is encoded as a field that only exists
+        /// in the active layout. Exposed here regardless of `cableType` so
+        /// callers can detect the contradiction. See `USBPDSOP.hasActiveLayoutContradiction`.
+        public let sopDoubleControllerPresent: Bool
+        public let decodeWarnings: [DecodeWarning]
+
+        /// Stable report value for the cable speed. Reserved encodings must
+        /// not be collapsed to USB 2.0, because the latter is a real
+        /// advertised capability and would make the report misleading.
+        public var reportSpeedLabel: String {
+            for warning in decodeWarnings {
+                if case .reservedSpeedEncoding(let encoding) = warning {
+                    return "Reserved cable speed encoding (\(encoding))"
+                }
+            }
+            return speed.reportLabel
+        }
+
+        public var maxVolts: Int {
+            switch maxVoltageEncoded {
+            case 3: return 50
+            default: return 20  // encodings 0, 1 (deprecated), and 2 (deprecated) all mean 20V per spec
+            }
+        }
+
+        /// Approximate one-way cable latency in nanoseconds, decoded from
+        /// `cableLatencyEncoded`. Returns `nil` for the reserved values
+        /// flagged in `decodeWarnings`. The 0001..1000 range maps roughly
+        /// 10 ns per cable metre. Active cables additionally carry 1001
+        /// (~1000 ns) and 1010 (~2000 ns) for optical lengths.
+        public var latencyNanoseconds: Int? {
+            switch cableLatencyEncoded {
+            case 0b0001: return 10
+            case 0b0010: return 20
+            case 0b0011: return 30
+            case 0b0100: return 40
+            case 0b0101: return 50
+            case 0b0110: return 60
+            case 0b0111: return 70
+            case 0b1000: return 80    // ">70 ns" per spec; treat as 80 for display purposes
+            case 0b1001 where cableType == .active: return 1000
+            case 0b1010 where cableType == .active: return 2000
+            default: return nil
+            }
+        }
+    }
+
+    public static func decodeCableVDO(_ vdo: UInt32, isActive: Bool) -> CableVDO {
+        let speedBits = Int(vdo & 0b111)
+        let decodedSpeed = CableSpeed(rawValue: speedBits)
+        let speed = decodedSpeed ?? .usb20
+        // Bit 4 is "VBUS Through Cable" in Active Cable VDO1 (Table 6.43).
+        // For passive cables (Table 6.42) bits 4..3 are Reserved and must not be read.
+        let vbusThrough = isActive && (vdo >> 4) & 1 == 1
+        let currentBits = Int((vdo >> 5) & 0b11)
+        let decodedCurrent = CableCurrent(rawValue: currentBits)
+        let current = decodedCurrent ?? .usbDefault
+        let maxV = Int((vdo >> 9) & 0b11)
+        let latencyBits = Int((vdo >> 13) & 0b1111)
+        let cableType: CableType = isActive ? .active : .passive
+        let cableTerminationBits = Int((vdo >> 11) & 0b11)
+        let vdoVersionBits = Int((vdo >> 21) & 0b111)
+        let eprCapable = (vdo >> 17) & 1 == 1
+        // Bit 3: "SOP'' Controller Present" in Active Cable VDO1 (Table 6.43).
+        // In Passive Cable VDO (Table 6.42), bits [4:3] are Reserved and must
+        // be zero. Extracting it here unconditionally lets callers detect when
+        // a passive-reporting cable uses a bit that only exists in the active layout.
+        let sopDoubleControllerPresent = (vdo >> 3) & 1 == 1
+        let plugType = PlugType(rawValue: Int((vdo >> 18) & 0b11)) ?? .typeC
+        var warnings: [DecodeWarning] = []
+        if decodedSpeed == nil {
+            warnings.append(.reservedSpeedEncoding(speedBits))
+        }
+        if decodedCurrent == nil {
+            warnings.append(.reservedCurrentEncoding(currentBits))
+        }
+        // The PD spec also flags `00` as Invalid for VBUS Current
+        // Handling (treat as 3 A), but real-world cables — including
+        // basic USB 2.0 charging cables — emit `00` as a "default"
+        // routinely. We intentionally don't warn on `00` because the
+        // false-positive rate would be high, and we lack calibration
+        // data showing it correlating with counterfeits. Revisit if
+        // future cable reports show otherwise.
+        // Cable Latency field. 0000 is "Invalid" for both cable types.
+        // Passive cables also treat 1001..1111 as Invalid. Active cables
+        // accept 1001 (~1000 ns optical) and 1010 (~2000 ns optical),
+        // and treat 1011..1111 as Invalid.
+        let latencyInvalid: Bool
+        if latencyBits == 0 {
+            latencyInvalid = true
+        } else if isActive {
+            latencyInvalid = latencyBits >= 0b1011
+        } else {
+            latencyInvalid = latencyBits >= 0b1001
+        }
+        if latencyInvalid {
+            warnings.append(.reservedCableLatencyEncoding(latencyBits))
+        }
+
+        // VDO Version (bits 23..21).
+        // Passive: only 000 (v1.0) is valid; everything else Invalid.
+        // Active: 000 (deprecated v1.0), 010 (deprecated v1.2), 011 (v1.3)
+        // are accepted. 001 and 100..111 are Invalid per Table 6.43.
+        let vdoVersionInvalid: Bool
+        if isActive {
+            vdoVersionInvalid = !(vdoVersionBits == 0 || vdoVersionBits == 0b010 || vdoVersionBits == 0b011)
+        } else {
+            vdoVersionInvalid = vdoVersionBits != 0
+        }
+        if vdoVersionInvalid {
+            warnings.append(.invalidVDOVersion(vdoVersionBits))
+        }
+
+        // Cable Termination (bits 12..11).
+        // Passive: 00 (VCONN not required) and 01 (VCONN required) are
+        // valid; 10 and 11 are Invalid.
+        // Active: 00 and 01 are Invalid; 10 (one end active) and 11
+        // (both ends active) are valid.
+        let cableTerminationInvalid: Bool
+        if isActive {
+            cableTerminationInvalid = cableTerminationBits < 0b10
+        } else {
+            cableTerminationInvalid = cableTerminationBits >= 0b10
+        }
+        if cableTerminationInvalid {
+            warnings.append(.invalidCableTermination(cableTerminationBits))
+        }
+
+        // H9a: Passive cable claims EPR Capable but its Max VBUS Voltage field
+        // is not the one encoding consistent with EPR. EPR requires 48V or 50V;
+        // only encoding 11 (50V) is meaningful per the spec. Encodings 0 (20V),
+        // 1, and 2 (both deprecated, treated as 20V) all contradict an EPR
+        // claim. Active cables aren't flagged here: their EPR semantics need
+        // the Active VDO2 decoder.
+        if !isActive && eprCapable && maxV != 3 {
+            warnings.append(.eprClaimedWithLowMaxVoltage)
+        }
+
+        // Per spec Table 6.42: encodings 01 and 10 are deprecated and mean 20V.
+        // Only encoding 11 (3) = 50V is meaningful; encoding 00 (0) = 20V.
+        let volts: Double
+        switch maxV {
+        case 3: volts = 50
+        default: volts = 20  // encodings 0, 1 (deprecated), and 2 (deprecated) all mean 20V
+        }
+        let amps = current.maxAmps
+        // USB-PD never delivers above 48V: the fixed EPR power levels top out
+        // at 48V (28/36/48V) and EPR adjustable voltage caps there too. The
+        // 50V "Maximum VBUS Voltage" e-marker field is an insulation rating,
+        // not a delivery voltage, so clamp to 48V before computing power.
+        // Without this a 50V/5A cable reports 250W, which USB-PD can't carry
+        // (the real EPR ceiling is 48V × 5A = 240W). The 20/30/40V cases are
+        // untouched: adjustable voltage genuinely reaches those.
+        let deliverableVolts = min(volts, 48)
+        let watts = Int((deliverableVolts * amps).rounded())
+
+        return CableVDO(
+            speed: speed,
+            current: current,
+            maxWatts: watts,
+            cableType: cableType,
+            plugType: plugType,
+            vbusThroughCable: vbusThrough,
+            maxVoltageEncoded: maxV,
+            cableLatencyEncoded: latencyBits,
+            vdoVersionEncoded: vdoVersionBits,
+            cableTerminationEncoded: cableTerminationBits,
+            eprCapable: eprCapable,
+            sopDoubleControllerPresent: sopDoubleControllerPresent,
+            decodeWarnings: warnings
+        )
+    }
+
+    // MARK: VPD VDO (VCONN-Powered Device, VDO[3] in PD 3.0+)
+
+    /// VCONN-Powered Device VDO, USB PD R3.2 Table 6.45. A VPD answers
+    /// Discover Identity at SOP' the way a cable does, but VDO[3] carries a
+    /// different layout, so the cable decoder must never be applied to it.
+    /// Apple's USB-C EarPods are one (issue #542).
+    public struct VPDVDO: Hashable {
+        /// Bits 31..28.
+        public let hwVersion: Int
+        /// Bits 27..24.
+        public let fwVersion: Int
+        /// Raw 3-bit "VDO Version" field (bits 23..21). Only `000` (v1.0)
+        /// is defined; anything else is reported via `decodeWarnings`.
+        public let vdoVersionEncoded: Int
+        /// Encoded "Max VBUS Voltage" field (bits 16..15): 00=20V,
+        /// 01..10=Deprecated (treat as 20V), 11=50V. A different bit
+        /// position from the cable VDOs, which carry it at bits 10..9.
+        public let maxVBUSVoltageEncoded: Int
+        /// Bit 14, "Charge Through Current Support": 0 = 3 A, 1 = 5 A.
+        public let chargeThroughFiveAmp: Bool
+        /// Bits 12..7, in 2 milliohm units. Only meaningful when
+        /// `chargeThroughSupported` is true.
+        public let vbusImpedanceMilliohms: Int
+        /// Bits 6..1, in 1 milliohm units. Only meaningful when
+        /// `chargeThroughSupported` is true.
+        public let groundImpedanceMilliohms: Int
+        /// Bit 0, "Charge Through Support".
+        public let chargeThroughSupported: Bool
+        public let decodeWarnings: [DecodeWarning]
+
+        /// Mirrors `CableVDO.maxVolts`: only encoding 11 means 50V, and the
+        /// deprecated encodings both mean 20V.
+        public var maxVBUSVolts: Int {
+            switch maxVBUSVoltageEncoded {
+            case 3: return 50
+            default: return 20
+            }
+        }
+
+        public var chargeThroughAmps: Double { chargeThroughFiveAmp ? 5.0 : 3.0 }
+    }
+
+    public static func decodeVPDVDO(_ vdo: UInt32) -> VPDVDO {
+        let vdoVersionBits = Int((vdo >> 21) & 0b111)
+        var warnings: [DecodeWarning] = []
+        // Table 6.45 defines only 000 (v1.0); 001..111 are Invalid.
+        if vdoVersionBits != 0 {
+            warnings.append(.invalidVDOVersion(vdoVersionBits))
+        }
+        return VPDVDO(
+            hwVersion: Int((vdo >> 28) & 0b1111),
+            fwVersion: Int((vdo >> 24) & 0b1111),
+            vdoVersionEncoded: vdoVersionBits,
+            maxVBUSVoltageEncoded: Int((vdo >> 15) & 0b11),
+            chargeThroughFiveAmp: (vdo >> 14) & 1 == 1,
+            vbusImpedanceMilliohms: Int((vdo >> 7) & 0b11_1111) * 2,
+            groundImpedanceMilliohms: Int((vdo >> 1) & 0b11_1111),
+            chargeThroughSupported: vdo & 1 == 1,
+            decodeWarnings: warnings
+        )
+    }
+
+    // MARK: Active Cable VDO 2 (active cables only, VDO[4] in PD 3.0+)
+
+    /// Physical medium the cable uses to carry data.
+    public enum PhysicalConnection: Int {
+        case copper = 0
+        case optical = 1
+
+        public var label: String {
+            switch self {
+            case .copper: return String(localized: "Copper", bundle: _coreLocalizedBundle)
+            case .optical: return String(localized: "Optical", bundle: _coreLocalizedBundle)
+            }
+        }
+    }
+
+    /// What the active silicon inside the cable's connector does to the
+    /// signal. A re-driver boosts the signal in place; a re-timer fully
+    /// decodes and re-emits it. Re-timers are more capable and usually
+    /// found in higher-end cables.
+    public enum ActiveElement: Int {
+        case redriver = 0
+        case retimer = 1
+
+        public var label: String {
+            switch self {
+            case .redriver: return String(localized: "Re-driver", bundle: _coreLocalizedBundle)
+            case .retimer: return String(localized: "Re-timer", bundle: _coreLocalizedBundle)
+            }
+        }
+    }
+
+    /// Idle-state power consumption of the active chip while the cable
+    /// is in U3 / CLd. Matters for thermal and battery-life accounting on
+    /// portable hosts. Bits 14..12.
+    public enum U3CLdPower: Int {
+        case greaterThan10mW = 0      // > 10 mW
+        case fiveTo10mW = 1           // 5-10 mW
+        case oneTo5mW = 2             // 1-5 mW
+        case halfTo1mW = 3            // 0.5-1 mW
+        case fifthToHalfmW = 4        // 0.2-0.5 mW
+        case fiftyTo200uW = 5         // 50-200 µW
+        case lessThan50uW = 6         // < 50 µW
+        case reserved = 7
+
+        public var label: String {
+            switch self {
+            case .greaterThan10mW: return String(localized: "> 10 mW", bundle: _coreLocalizedBundle)
+            case .fiveTo10mW: return String(localized: "5-10 mW", bundle: _coreLocalizedBundle)
+            case .oneTo5mW: return String(localized: "1-5 mW", bundle: _coreLocalizedBundle)
+            case .halfTo1mW: return String(localized: "0.5-1 mW", bundle: _coreLocalizedBundle)
+            case .fifthToHalfmW: return String(localized: "0.2-0.5 mW", bundle: _coreLocalizedBundle)
+            case .fiftyTo200uW: return String(localized: "50-200 µW", bundle: _coreLocalizedBundle)
+            case .lessThan50uW: return String(localized: "< 50 µW", bundle: _coreLocalizedBundle)
+            case .reserved: return String(localized: "Reserved", bundle: _coreLocalizedBundle)
+            }
+        }
+    }
+
+    public struct ActiveCableVDO2: Hashable {
+        /// Bits 31..24, in degrees C. 0 means "not specified."
+        public let maxOperatingTempC: Int
+        /// Bits 23..16, in degrees C. 0 means "not specified."
+        public let shutdownTempC: Int
+        /// Bits 14..12.
+        public let u3CLdPower: U3CLdPower
+        /// Bit 11. `true` = transition through U3S (saves power but slower
+        /// to wake), `false` = direct.
+        public let u3ToU0TransitionThroughU3S: Bool
+        /// Bit 10.
+        public let physicalConnection: PhysicalConnection
+        /// Bit 9.
+        public let activeElement: ActiveElement
+        /// Bit 8.
+        public let usb4Supported: Bool
+        /// Bits 7..6. Number of USB 2.0 hub hops the cable consumes from
+        /// the topology budget.
+        public let usb2HubHopsConsumed: Int
+        /// Bit 5.
+        public let usb2Supported: Bool
+        /// Bit 4. Set when USB 3.2 signalling is supported.
+        public let usb32Supported: Bool
+        /// Bit 3. `true` = two USB lanes supported, `false` = one lane.
+        public let twoLanesSupported: Bool
+        /// Bit 2. Optical cables that carry their signal on glass fiber
+        /// are physically isolated by construction; cables that bring
+        /// power or ground continuity through copper alongside the fiber
+        /// will set this to `false`.
+        public let opticallyIsolated: Bool
+        /// Bit 1.
+        public let usb4AsymmetricMode: Bool
+        /// Bit 0. `true` = Gen2 or higher, `false` = Gen1.
+        public let usbGen2OrHigher: Bool
+    }
+
+    public static func decodeActiveCableVDO2(_ vdo: UInt32) -> ActiveCableVDO2 {
+        let maxTemp = Int((vdo >> 24) & 0xFF)
+        let shutdownTemp = Int((vdo >> 16) & 0xFF)
+        let powerBits = Int((vdo >> 12) & 0b111)
+        let power = U3CLdPower(rawValue: powerBits) ?? .reserved
+        let physBits = Int((vdo >> 10) & 1)
+        let phys = PhysicalConnection(rawValue: physBits) ?? .copper
+        let elemBits = Int((vdo >> 9) & 1)
+        let elem = ActiveElement(rawValue: elemBits) ?? .redriver
+
+        // The protocol-supported bits (USB4, USB 3.2, USB 2.0) are
+        // *inverted* in the spec: a 0 bit means "supported," a 1 means
+        // "not supported." The other Bool fields use the conventional
+        // 1 = yes encoding. Keep the API ergonomic (`usb4Supported = true`
+        // when the cable actually supports USB4) by inverting here.
+        return ActiveCableVDO2(
+            maxOperatingTempC: maxTemp,
+            shutdownTempC: shutdownTemp,
+            u3CLdPower: power,
+            u3ToU0TransitionThroughU3S: (vdo >> 11) & 1 == 1,
+            physicalConnection: phys,
+            activeElement: elem,
+            usb4Supported: (vdo >> 8) & 1 == 0,
+            usb2HubHopsConsumed: Int((vdo >> 6) & 0b11),
+            usb2Supported: (vdo >> 5) & 1 == 0,
+            usb32Supported: (vdo >> 4) & 1 == 0,
+            twoLanesSupported: (vdo >> 3) & 1 == 1,
+            opticallyIsolated: (vdo >> 2) & 1 == 1,
+            usb4AsymmetricMode: (vdo >> 1) & 1 == 1,
+            usbGen2OrHigher: vdo & 1 == 1
+        )
+    }
+
+    // MARK: Cert Stat VDO (always VDO[1])
+
+    /// USB-IF certification identity. Issued before product certification;
+    /// `0` means the e-marker carries no certification ID. Common on
+    /// reputable but uncertified cables, so we surface it as a neutral
+    /// fact rather than a trust flag.
+    public struct CertStat: Hashable {
+        public let xid: UInt32
+
+        public var isPresent: Bool { xid != 0 }
+    }
+
+    public static func decodeCertStat(_ vdo: UInt32) -> CertStat {
+        // Spec table 6.38: bits 31..0 carry the XID.
+        return CertStat(xid: vdo)
+    }
+
+    // MARK: Helpers
+
+    /// IOKit stores VDOs as 4-byte little-endian Data blobs. Decode to UInt32.
+    public static func vdoFromData(_ data: Data) -> UInt32? {
+        guard data.count >= 4 else { return nil }
+        return data.withUnsafeBytes { buf in
+            buf.loadUnaligned(as: UInt32.self).littleEndian
+        }
+    }
+}

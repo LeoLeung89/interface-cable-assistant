@@ -1,0 +1,16 @@
+/.build/
+/.lab-build/
+/.swiftpm/
+/build/
+/outputs/
+/DerivedData/
+*.xcodeproj/
+*.xcuserstate
+.DS_Store
+.env
+secrets/
+__pycache__/
+*.pyc
+*.p12
+*.mobileprovision
+*.key
