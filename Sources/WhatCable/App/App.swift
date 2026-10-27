@@ -47,6 +47,8 @@ struct WhatCableApp: App {
         // Headless - UI is owned by AppDelegate (status item + popover, or
         // a regular window, depending on AppSettings.useMenuBarMode).
         Settings { SettingsForm().environmentObject(AppDelegate.refreshSignal).padding(20).frame(width: 440, height: 620) }
+            .defaultLaunchBehavior(.suppressed)
+            .restorationBehavior(.disabled)
             .commands {
                 CommandGroup(replacing: .appInfo) {
                     Button(String(localized: "About \(AppInfo.name)", bundle: _appLocalizedBundle)) {
@@ -1481,4 +1483,3 @@ extension AppDelegate {
     }
 }
 #endif
-

@@ -149,3 +149,27 @@ enum LabText {
         return "\(state) · \(e.sampleCount) 个样本 · ΔI \(e.currentSpanMilliamps) mA · R² \(String(format: "%.2f", e.rSquared))"
     }
 }
+
+/// Last confirmed label for a physical port and its observable connection.
+/// This is a display preference, not proof of an individual cable's identity.
+struct LabRememberedConnection: Codable, Equatable {
+    var profileID: UUID
+    var identity: String
+}
+struct LabRememberedConnections: Codable {
+    var version = 1
+    var ports: [String: LabRememberedConnection] = [:]
+    static func decode(_ data: Data) throws -> Self {
+        guard data.count <= 1_000_000 else { throw CocoaError(.fileReadTooLarge) }
+        let value = try JSONDecoder().decode(Self.self, from: data)
+        guard value.version == 1, value.ports.count <= 64,
+              value.ports.allSatisfy({ $0.key.count <= 120 && $0.value.identity.count <= 2048 })
+        else { throw CocoaError(.fileReadCorruptFile) }
+        return value
+    }
+    func profile(for port: String, identity: String?, validIDs: Set<UUID>) -> UUID? {
+        guard let identity, let saved = ports[port], saved.identity == identity,
+              validIDs.contains(saved.profileID) else { return nil }
+        return saved.profileID
+    }
+}

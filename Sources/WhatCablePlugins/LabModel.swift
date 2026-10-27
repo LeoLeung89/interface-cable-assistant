@@ -12,6 +12,8 @@ final class LabModel: ObservableObject {
     @Published var names: [NamedCable] = []
     @Published var nativeLabels = LabNativeLabels()
     var nativeLabelsWritable = true
+    var rememberedConnections = LabRememberedConnections()
+    var rememberedConnectionsWritable = true
     @Published private(set) var bindings = LabBindings()
     @Published var error: String?
     @Published var selectedPort: String = ""
@@ -57,6 +59,15 @@ final class LabModel: ObservableObject {
         } catch {
             nativeLabelsWritable = false
             self.error = "HDMI 名称文件读取失败，已暂停写入以保护记录。"
+        }
+        do {
+            let url = self.storageDirectory.appendingPathComponent("connection-labels-v1.json")
+            if FileManager.default.fileExists(atPath: url.path) {
+                rememberedConnections = try LabRememberedConnections.decode(Data(contentsOf: url))
+            }
+        } catch {
+            rememberedConnectionsWritable = false
+            self.error = "连接名称关联读取失败，已保护原文件，暂停写入。"
         }
         if recordsArchive {
             do { engine = LabArchiveEngine(archive: try archiveStore.load()) }
@@ -150,6 +161,7 @@ final class LabModel: ObservableObject {
         }
         bindings.update(tokens)
         snapshot = current
+        restoreConnectionLabels()
         service.updatePorts(current.ports)
         if !ctx.portContexts.contains(where: { $0.port.portKey == selectedPort }) {
             selectedPort = ctx.portContexts.first(where: { $0.port.connectionActive == true })?.port.portKey
@@ -159,8 +171,13 @@ final class LabModel: ObservableObject {
         widgetWriter.publish(model: self)
     }
 
+    func restoreBinding(_ id: UUID, port: String) {
+        bindings.assign(id, to: port)
+    }
+
     func assign(_ id: UUID?) {
         bindings.assign(id, to: selectedPort)
+        rememberConnection(id, port: selectedPort)
         engine.assign(id, port: selectedPort)
         flush(force: true)
         widgetWriter.publish(model: self, force: true)

@@ -9,7 +9,7 @@ let labChecksOnly = ProcessInfo.processInfo.environment["WHATCABLE_LAB_CHECKS"] 
 let package = Package(
     name: "WhatCable",
     defaultLocalization: "en",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("15.0")],
     products: [
         .executable(name: "WhatCable", targets: ["WhatCable"]),
         .executable(name: "whatcable-cli", targets: ["WhatCableCLI"]),

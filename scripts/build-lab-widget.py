@@ -36,7 +36,7 @@ frameworks = obj("frameworks", isa="PBXFrameworksBuildPhase", buildActionMask=21
 resources = obj("resources", isa="PBXResourcesBuildPhase", buildActionMask=2147483647, files=[], runOnlyForDeploymentPostprocessing=0)
 settings = {
     "PRODUCT_NAME": "LabDesktopWidget", "PRODUCT_BUNDLE_IDENTIFIER": "local.leo.WhatCableLab.widget",
-    "SDKROOT": "macosx", "MACOSX_DEPLOYMENT_TARGET": "14.0", "SWIFT_VERSION": "5.0",
+    "SDKROOT": "macosx", "MACOSX_DEPLOYMENT_TARGET": "15.0", "SWIFT_VERSION": "5.0",
     "SWIFT_OPTIMIZATION_LEVEL": "-O", "SWIFT_COMPILATION_MODE": "wholemodule",
     "ARCHS": "arm64", "ONLY_ACTIVE_ARCH": "YES", "SKIP_INSTALL": "YES",
     "APPLICATION_EXTENSION_API_ONLY": "YES", "GENERATE_INFOPLIST_FILE": "NO",

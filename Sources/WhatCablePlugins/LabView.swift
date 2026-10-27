@@ -14,11 +14,12 @@ final class LabWindow: NSObject, NSWindowDelegate {
         if window == nil {
             let controller = NSHostingController(rootView: LabView(model: model))
             let w = NSWindow(contentViewController: controller)
-            w.title = "接口线缆助手 · 扩展诊断"
+            w.title = "\(AppInfo.name) · 扩展诊断"
             w.setContentSize(NSSize(width: 1200, height: 840))
             w.minSize = NSSize(width: 1000, height: 700)
             w.styleMask = [.titled, .closable, .miniaturizable, .resizable]
             w.isReleasedWhenClosed = false
+            w.isRestorable = false
             w.delegate = self
             w.center()
             window = w
@@ -41,7 +42,7 @@ struct LabView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("连接与功率").font(.title2.bold())
-                    Text("接口线缆助手 · 基于公开源码的独立扩展").font(.caption).foregroundStyle(.secondary)
+                    Text("\(AppInfo.name) · 基于公开源码的独立扩展").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Label("每秒刷新", systemImage: "waveform.path").font(.caption).foregroundStyle(.secondary)

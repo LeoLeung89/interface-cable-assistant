@@ -6,7 +6,10 @@ public func presentLabDiagnostics() { LabWindow.shared.show() }
 
 @MainActor
 public func bootstrapPlugins(registry: PluginRegistry) {
-    registry.register(launchHook: { LabWindow.shared.show() })
+    registry.register(launchHook: {
+        LabWindow.shared.model.start()
+        LabWindow.shared.model.setVisible(false)
+    })
     registry.register(menuItem: PluginMenuItem(id: "independent-lab", title: "扩展诊断与线缆命名…") {
         LabWindow.shared.show()
     }, at: .statusItemMenu)

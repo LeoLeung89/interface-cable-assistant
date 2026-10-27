@@ -7,8 +7,8 @@
 <key>CFBundleExecutable</key><string>LabDesktopWidget</string>
 <key>CFBundlePackageType</key><string>XPC!</string>
 <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-<key>CFBundleShortVersionString</key><string>1.0.0</string>
-<key>CFBundleVersion</key><string>10000</string>
-<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>CFBundleShortVersionString</key><string>1.0.1</string>
+<key>CFBundleVersion</key><string>10001</string>
+<key>LSMinimumSystemVersion</key><string>15.0</string>
 <key>NSExtension</key><dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict>
 </dict></plist>

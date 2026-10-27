@@ -74,7 +74,7 @@ struct LabConnectionNamingEditor: View {
                 .font(.caption).foregroundStyle(.secondary)
             Text("建议可修改，保存后视为你的确认。当前链路速率仍单独显示，不会当作线缆最大规格。")
                 .font(.caption).foregroundStyle(.secondary)
-            Text("保存到线缆档案。重新插入后需手动确认是这根线，再恢复这些名称和规格。")
+            Text("名称按接口与连接对象记住，重启后自动恢复。更换同型号线材可能无法识别，请重新核对手动填写的规格。")
                 .font(.caption).foregroundStyle(.secondary)
             if let error = model.error { Text(error).foregroundStyle(.orange) }
             HStack {

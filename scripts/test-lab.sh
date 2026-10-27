@@ -16,4 +16,4 @@ if [[ -f "$LAB_PLUGIN" ]]; then
 fi
 DEVELOPER_DIR=/Library/Developer/CommandLineTools /Library/Developer/CommandLineTools/usr/bin/swift test -c release --scratch-path "$LAB_BUILD_DIR" --disable-sandbox --sdk "$LAB_SDK" \
     --disable-xctest "${PLUGIN_ARGS[@]}" \
-    --filter 'LabTests|RegressionAccumulator|ChargingDiagnostic|DataLinkDiagnostic|DisplayDiagnostic|CableResistanceTier'
+    --filter 'ConnectionPersistenceTests|LabArchiveTests|LabWidgetTests|LabTests|RegressionAccumulator|ChargingDiagnostic|DataLinkDiagnostic|DisplayDiagnostic|CableResistanceTier'
