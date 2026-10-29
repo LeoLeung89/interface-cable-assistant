@@ -1,5 +1,7 @@
 # 接口线缆助手 · Mac 版
 
+<img src="docs/app-icon.png" width="128" alt="应用图标">
+
 适用于 Mac 的接口与线缆诊断工具，查看 USB-C、Thunderbolt / USB4 和原生 HDMI 连接、显示模式与功率记录。
 
 > **来源与非官方声明**：本项目基于 [Darryl Morley 的 WhatCable](https://github.com/darrylmorley/whatcable) 公开 MIT 授权源码修改，上游基准提交为 `58e588ab45350cf9512ce40d4080fbbef3b94ad0`。这是独立维护的非官方分支，与原作者和 Apple 没有隶属或背书关系。新增扩展独立实现，不含私有 Pro 插件，不修改购买状态或许可验证。
