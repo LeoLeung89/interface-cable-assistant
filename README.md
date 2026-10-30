@@ -8,6 +8,8 @@
 
 ## 下载与要求
 
+**[下载新图标版 macOS 安装包](https://github.com/LeoLeung89/interface-cable-assistant/releases/download/v1.0.1/cable-macos-icon.zip)**（Apple 芯片；临时签名。覆盖旧版后，相关系统权限可能需要重新授权；建议先备份旧版。）
+
 在 [Releases](https://github.com/LeoLeung89/interface-cable-assistant/releases) 下载最新发布版。
 
 - Apple Silicon Mac，macOS 15 或更新版本；本发布包仅含 arm64。
