@@ -15,7 +15,7 @@ if app.exists():
     info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
     if info.get("CFBundleIdentifier") != identifier:
         raise SystemExit("Refusing to overwrite an application with a different identity")
-    shutil.rmtree(app)
+    raise SystemExit(f"输出位置已有应用：{app}。请先备份并手动处理，避免覆盖现有应用。")
 contents = app / "Contents"
 for directory in ("MacOS", "Helpers", "Resources", "PlugIns"):
     (contents / directory).mkdir(parents=True)
